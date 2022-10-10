@@ -1,0 +1,10 @@
+name: ift6758-project-conda-env
+dependencies:
+  - python=3.9
+  - numpy
+  - pandas
+  - scipy
+  - jupyterlab
+  - matplotlib
+  - seaborn
+  - tqdm
