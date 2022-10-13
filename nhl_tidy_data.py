@@ -6,6 +6,15 @@ import pandas as pd
 import json
 
 def convert_raw_data_to_panda_csv(nhl: nhl_dataset.NhlDataset, csv_path: str, seasons: List[int], game_types: List[str] = [nhl_dataset.REGULAR_GAME_TYPE, nhl_dataset.PLAYOFFS_GAME_TYPE]):
+    """
+    Converts the raw data from a nhl dataset to pandas dataframe and save it in a csv
+
+    Arguments:
+    - nhl: the NhlDataset object
+    - csv_path: the path where to save the dataframe
+    - seasons: the game seasons of interest
+    - game_types: the type of game to include in the dataframe. SEE nhl_dataset.REGULAR_GAME_TYPE, nhl_dataset.PLAYOFFS_GAME_TYPE
+    """
     data: List[dict] = []
     for season in seasons:
         for game_type in game_types:
@@ -26,6 +35,12 @@ def convert_raw_data_to_panda_csv(nhl: nhl_dataset.NhlDataset, csv_path: str, se
 
 
 def get_game_events(game_data: dict) -> List[dict]:
+    """
+    Get the event data from the raw game data dict
+
+    Arguments:
+    - game_data: raw game data received from api
+    """
     result = []
     for raw_event in game_data["liveData"]["plays"]["allPlays"]:
         if raw_event["result"]["eventTypeId"] in ["SHOT", "GOAL"]:
@@ -59,6 +74,12 @@ def get_game_events(game_data: dict) -> List[dict]:
 
 
 def get_players_name(players: List[dict]) -> dict:
+    """
+    Get the name and role of the players from the player list
+
+    Arguments:
+    - players: the player list from a game event
+    """
     result = {"shooter_name": "", "goalie_name": ""}
     for player in players:
         if player["playerType"] in ["Scorer", "Shooter"]:
@@ -69,6 +90,12 @@ def get_players_name(players: List[dict]) -> dict:
 
 
 def load_json_dict(file_path: str) -> dict:
+    """
+    Load the json data from the file_path into a dict
+
+    Arguments:
+    - file_path: the json file
+    """
     result = None
     try:
         with open(file_path) as f:
