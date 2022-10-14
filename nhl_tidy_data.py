@@ -107,6 +107,6 @@ def load_json_dict(file_path: str) -> dict:
 
 if __name__ == "__main__":
     dataset = nhl_dataset.NhlDataset()
-    dataset.load_all(2016, 2017, 2018, 2019)
+    dataset.load_all(2016, 2017, 2018, 2019, 2020)
     seasons = [2016, 2017, 2018, 2019, 2020]
-    convert_raw_data_to_panda_csv(dataset, './data/df-1.csv', seasons)
+    convert_raw_data_to_panda_csv(dataset, './data/df.csv', seasons)

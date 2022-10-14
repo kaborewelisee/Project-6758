@@ -151,7 +151,17 @@ class NhlDataset:
         Arguments:
         - season: the start year of the season. For example, for 2016-17 it is 2016
         """
-        pass
+        matchups_count = 8
+        rounds_count = 4
+        games_count = 7
+
+        for round in range(1, rounds_count+1):
+            for matchup in range(1, int(matchups_count+1)):
+                for game in range(1, games_count+1):
+                    game_number = f"0{round}{matchup}{game}"
+                    game_id = self.format_game_id(season, PLAYOFFS_GAME_TYPE, game_number)
+                    yield game_id
+            matchups_count /= 2
 
 
     def load_regular_season(self, season: int) -> None:
@@ -171,7 +181,7 @@ class NhlDataset:
         Arguments:
         - season: the start year of the season. For example, for 2016-17 it is 2016
         """
-        # self.load_season_games(season, PLAYOFFS_GAME_TYPE, self.playoffs_game_id_generator)
+        self.load_season_games(season, PLAYOFFS_GAME_TYPE, self.playoffs_game_id_generator)
         pass
 
 
