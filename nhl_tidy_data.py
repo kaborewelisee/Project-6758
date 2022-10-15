@@ -34,6 +34,36 @@ def convert_raw_data_to_panda_csv(nhl: nhl_dataset.NhlDataset, csv_path: str, se
         print("No data found!")
 
 
+def get_period_home_rink_side_right(periods: List[dict]) -> dict:
+    """
+    Compute a list that indicates for each period if the team that is home is on the right side
+    """
+    home_rink_side_right = {}
+    ref_period = 1
+    ref_home = True
+    has_valid_rink = False
+    for period in periods:
+        home_rink_side_right[period["num"]] = None
+        if "rinkSide" in period["home"]:
+            home_rink_side_right[period["num"]] = period["home"]["rinkSide"] == "right"
+            ref_period = period["num"]
+            ref_home = period["home"]["rinkSide"] == "right"
+            has_valid_rink = True
+
+    if has_valid_rink:
+        for period in range(1, len(periods)+7):
+            if home_rink_side_right.get(period) == None:
+                if period % 2 == ref_period % 2:
+                    home_rink_side_right[period] = ref_home
+                else:
+                    home_rink_side_right[period] = not ref_home
+    else:
+        home_rink_side_right = None
+        print("No valid rink side")
+        
+    return home_rink_side_right
+
+
 def get_game_events(game_data: dict) -> List[dict]:
     """
     Get the event data from the raw game data dict
@@ -42,6 +72,12 @@ def get_game_events(game_data: dict) -> List[dict]:
     - game_data: raw game data received from api
     """
     result = []
+
+    if len(game_data["liveData"]["plays"]["allPlays"]) == 0:
+        return result
+
+    home_rink_side_right = get_period_home_rink_side_right(game_data["liveData"]["linescore"]["periods"])
+
     for raw_event in game_data["liveData"]["plays"]["allPlays"]:
         if raw_event["result"]["eventTypeId"] in ["SHOT", "GOAL"]:
             event = {}
@@ -68,6 +104,14 @@ def get_game_events(game_data: dict) -> List[dict]:
                 event["goal_strength_code"] = raw_event["result"]["strength"]["code"]
             else:
                 event["goal_strength_code"] = None
+            
+            event["period"] = raw_event["about"]["period"]
+            event["team_home"] = raw_event["team"]["id"] == game_data["gameData"]["teams"]["home"]["id"]
+            if home_rink_side_right == None:
+                event["team_rink_side_right"] = None
+            else:
+                event["team_rink_side_right"] = (event["team_home"] and home_rink_side_right[event["period"]]) or (not event["team_home"] and not home_rink_side_right[event["period"]])
+
 
             result.append(event)
     return result
@@ -107,6 +151,6 @@ def load_json_dict(file_path: str) -> dict:
 
 if __name__ == "__main__":
     dataset = nhl_dataset.NhlDataset()
-    dataset.load_all(2016, 2017, 2018, 2019, 2020)
+    #dataset.load_all(2016, 2017, 2018, 2019, 2020)
     seasons = [2016, 2017, 2018, 2019, 2020]
     convert_raw_data_to_panda_csv(dataset, './data/df.csv', seasons)
