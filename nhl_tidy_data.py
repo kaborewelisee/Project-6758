@@ -83,6 +83,7 @@ def get_game_events(game_data: dict) -> List[dict]:
             event = {}
             event["game_start_time"] = game_data["gameData"]["datetime"].get("dateTime")
             event["game_end_time"] = game_data["gameData"]["datetime"].get("endDateTime")
+            event["season"] = game_data["gameData"]["game"].get("season")
             event["game_id"] = game_data["gameData"]["game"]["pk"]
             event["team_id"] = raw_event["team"]["id"]
             event["team_name"] = raw_event["team"]["name"]
