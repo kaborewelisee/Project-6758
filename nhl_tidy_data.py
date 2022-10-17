@@ -113,6 +113,7 @@ def get_game_events(game_data: dict) -> List[dict]:
             else:
                 event["team_rink_side_right"] = (event["team_home"] and home_rink_side_right[event["period"]]) or (not event["team_home"] and not home_rink_side_right[event["period"]])
 
+            event["event_id"] = raw_event["about"]["eventId"]
 
             result.append(event)
     return result
