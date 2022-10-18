@@ -12,18 +12,20 @@ if not os.path.exists("plots"):
     os.mkdir("plots")
 
 
-def create_heatmap(data):
-    '''
+def create_heatmap(data, season_avg_hourly):
+    """
     Filters and converts the coordinates data to be used for a given team and season.
 
     Args:
         data: df of the data for a given team and season
+        season_avg: hist of the season average for a given season
 
     Returns:
-        x: coordinates in x to be used
-        y: coordinates in y to be used
+        diff: difference between the hourly shooting rate of a given team vs the league average
+        x_labels: x labels
+        y_labels: y labels
 
-    '''
+    """
     # print(data[['coordinates_x', 'coordinates_y', 'team_home', 'team_rink_side_right']])
     data['coordinates_x'] = np.where(data['team_rink_side_right'], -data['coordinates_x'], data['coordinates_x'])
     data['coordinates_y'] = np.where(data['team_rink_side_right'], -data['coordinates_y'], data['coordinates_y'])
@@ -32,15 +34,46 @@ def create_heatmap(data):
 
     x = data['coordinates_x'].values
     y = data['coordinates_y'].values
-    # h, _, _, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 1), np.arange(0, 90, 1)])
+    team_avg, x_labels, y_labels, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 2), np.arange(0, 90, 2)])
 
-    return x, y
+    # Make the realtive difference between the team average and the league
+    nb_games = len(data['game_id'].unique())
+    team_avg_hourly = team_avg / nb_games
+    diff = team_avg_hourly - season_avg_hourly
+
+    return diff, x_labels, y_labels
+
+
+def make_season_avg(data):
+    """
+    Makes the season average of shoots per hour for all teams for a given season
+
+    Args:
+        data: season data for all teams
+
+    Returns:
+        season_avg: 2D histogram of the season average of shoots per hour in the offencive zone for all teams
+    """
+
+    data['coordinates_x'] = np.where(data['team_rink_side_right'], -data['coordinates_x'], data['coordinates_x'])
+    data['coordinates_y'] = np.where(data['team_rink_side_right'], -data['coordinates_y'], data['coordinates_y'])
+
+    data = data[data['coordinates_x'] >= 0]
+
+    x = data['coordinates_x'].values
+    y = data['coordinates_y'].values
+    season_avg, _, _, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 2), np.arange(0, 90, 2)])
+
+    nb_games = len(data['game_id'].unique())
+    season_avg_hourly = season_avg / nb_games
+
+    return season_avg_hourly
 
 
 def shoots_visual():
-    '''
+    """
     Makes the advanced visualisation plot and saves it to plot/shootings.html
-    '''
+    """
 
     df = pd.read_csv('data/df.csv')
     df = df[~df['team_rink_side_right'].isnull()]
@@ -49,14 +82,19 @@ def shoots_visual():
     df = df[df['season'].isin([20192020, 20202021])]
 
     # teams = df['team_name'].unique()
-    # seasons = df['season'].unique()
+    seasons = df['season'].unique()
+    seasons_avg = {}
+    for season in seasons:
+        seasons_avg[season] = make_season_avg(df[df['season'] == season])
+
     traces = []
     menu_items = []
     for (team_nm, season), data in df.groupby(['team_name', 'season']):
         menu_items.append(f'{team_nm}-{season}')
         # heatmap[team_nm][season_id] = create_heatmap(data)
-        x, y = create_heatmap(data)
-        fig = ff.create_2d_density(y, x)
+        diff_heatmap, x_labels, y_labels = create_heatmap(data, seasons_avg[season])
+        # fig = ff.create_2d_density(y, x)
+        fig = ff.create_annotated_heatmap(np.transpose(diff_heatmap), x=list(x_labels)[:-1], y=list(y_labels)[:-1])
         traces.append(fig.to_dict()["data"][0])
 
     # Create figure
