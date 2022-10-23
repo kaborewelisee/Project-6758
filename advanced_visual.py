@@ -78,8 +78,8 @@ def shoots_visual():
     df = pd.read_csv('data/df.csv')
     df = df[~df['team_rink_side_right'].isnull()]
 
-    df = df[df['team_tri_code'].isin(['MTL', 'TOR'])]
-    df = df[df['season'].isin([20192020, 20202021])]
+    # df = df[df['team_tri_code'].isin(['MTL', 'TOR'])]
+    # df = df[df['season'].isin([20192020, 20202021])]
 
     # teams = df['team_name'].unique()
     seasons = df['season'].unique()
@@ -94,7 +94,7 @@ def shoots_visual():
         # heatmap[team_nm][season_id] = create_heatmap(data)
         diff_heatmap, x_labels, y_labels = create_heatmap(data, seasons_avg[season])
         # fig = ff.create_2d_density(y, x)
-        fig = ff.create_annotated_heatmap(np.transpose(diff_heatmap), x=list(x_labels)[:-1], y=list(y_labels)[:-1])
+        fig = ff.create_annotated_heatmap(np.transpose(diff_heatmap), x=list(x_labels)[:-1], y=list(y_labels)[:-1], showscale=True)
         traces.append(fig.to_dict()["data"][0])
 
     # Create figure
@@ -181,7 +181,14 @@ def shoots_visual():
     updatemenus = list([
         dict(buttons=buttons)
     ])
-    layout = dict(updatemenus=updatemenus, title=menu_items[0])
+    team_str = menu_items[0].split('-')[0]
+    season_str = f"Season: {menu_items[0].split('-')[1]}"
+    text_desc = f'{team_str} Offence<br>' \
+                f'Season {season_str}<br>' \
+                f'Unblocked Shot Rates, relative to League Average of the Season' \
+                # f'{}<br>' \
+                # f'{}'
+    layout = dict(updatemenus=updatemenus, title=text_desc, showlegend=True)
     fig = dict(data=traces, layout=layout)
 
     pio.write_html(fig, 'plots/shootings.html')
