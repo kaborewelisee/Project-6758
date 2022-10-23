@@ -34,7 +34,7 @@ def create_heatmap(data, season_avg_hourly):
 
     x = data['coordinates_x'].values
     y = data['coordinates_y'].values
-    team_avg, x_labels, y_labels, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 2), np.arange(0, 90, 2)])
+    team_avg, x_labels, y_labels, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 4), np.arange(0, 90, 4)])
 
     # Make the realtive difference between the team average and the league
     nb_games = len(data['game_id'].unique())
@@ -62,7 +62,7 @@ def make_season_avg(data):
 
     x = data['coordinates_x'].values
     y = data['coordinates_y'].values
-    season_avg, _, _, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 2), np.arange(0, 90, 2)])
+    season_avg, _, _, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 4), np.arange(0, 90, 4)])
 
     nb_games = len(data['game_id'].unique())
     season_avg_hourly = season_avg / nb_games
