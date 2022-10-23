@@ -1,8 +1,9 @@
 from os.path import exists
 from os.path import join
 from pathlib import Path
-import requests
 from collections.abc import Generator
+from typing import List
+import requests
 
 REGULAR_GAME_TYPE = "02"
 PLAYOFFS_GAME_TYPE = "03"
@@ -25,7 +26,7 @@ class NhlDataset:
         self.cache_path = cache_path
 
 
-    def load_all(self, *seasons: int) -> None:
+    def load_all(self, seasons: List[int]) -> None:
         """
         Load regular season and playoffs games play data for multiple seasons
 
@@ -188,4 +189,4 @@ class NhlDataset:
 
 if __name__ == "__main__":
     dataset = NhlDataset()
-    dataset.load_all(2016, 2017, 2018, 2019, 2020)
+    dataset.load_all([2016, 2017, 2018, 2019, 2020])
