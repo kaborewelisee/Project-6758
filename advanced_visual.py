@@ -191,7 +191,7 @@ def shoots_visual():
     layout = dict(updatemenus=updatemenus, title=text_desc, showlegend=True)
     fig = dict(data=traces, layout=layout)
 
-    pio.write_html(fig, 'plots/shootings.html')
+    pio.write_html(fig, 'plots/shootings.html', include_plotlyjs=False)
     # iplot(fig)
 
 
