@@ -40,6 +40,7 @@ def create_heatmap(data, season_avg_hourly):
     nb_games = len(data['game_id'].unique())
     team_avg_hourly = team_avg / nb_games
     diff = team_avg_hourly - season_avg_hourly
+    # rel_diff = np.divide(diff, season_avg_hourly, out=np.zeros_like(diff), where=season_avg_hourly != 0)
 
     return diff, x_labels, y_labels
 
@@ -192,6 +193,7 @@ def shoots_visual():
     fig = dict(data=traces, layout=layout)
 
     pio.write_html(fig, 'plots/shootings.html', include_plotlyjs=True)
+    # pio.write_html(fig, 'plots/shootings_relative.html', include_plotlyjs=True)
     # iplot(fig)
 
 
