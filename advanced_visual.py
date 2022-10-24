@@ -34,7 +34,7 @@ def create_heatmap(data, season_avg_hourly):
 
     x = data['coordinates_x'].values
     y = data['coordinates_y'].values
-    team_avg, x_labels, y_labels, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 4), np.arange(0, 90, 4)])
+    team_avg, x_labels, y_labels, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 3), np.arange(0, 90, 3)])
 
     # Make the realtive difference between the team average and the league
     nb_games = len(data['game_id'].unique())
@@ -62,9 +62,9 @@ def make_season_avg(data):
 
     x = data['coordinates_x'].values
     y = data['coordinates_y'].values
-    season_avg, _, _, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 4), np.arange(0, 90, 4)])
+    season_avg, _, _, _ = plt.hist2d(y, x, bins=[np.arange(-40, 40, 3), np.arange(0, 90, 3)])
 
-    nb_games = len(data['game_id'].unique())
+    nb_games = len(data['game_id'].unique()) * 2  # Times 2 cause there are two teams playing in one game_id
     season_avg_hourly = season_avg / nb_games
 
     return season_avg_hourly
@@ -188,10 +188,10 @@ def shoots_visual():
                 f'Unblocked Shot Rates, relative to League Average of the Season' \
                 # f'{}<br>' \
                 # f'{}'
-    layout = dict(updatemenus=updatemenus, title=text_desc, showlegend=True)
+    layout = dict(updatemenus=updatemenus, title=text_desc)
     fig = dict(data=traces, layout=layout)
 
-    pio.write_html(fig, 'plots/shootings.html', include_plotlyjs=False)
+    pio.write_html(fig, 'plots/shootings.html', include_plotlyjs=True)
     # iplot(fig)
 
 
