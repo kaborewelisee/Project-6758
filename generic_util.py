@@ -1,9 +1,27 @@
 import numpy as np
 import pandas as pd
+from comet_ml import Experiment
+import os
 
+COMET_PROJECT_NAME = "ift6758-project"
+COMET_WORKSPACE = "ift6758-22-milestone-2"
 
 NET_ABSOLUTE_COORD_X = 89
 NET_COORD_Y = 0
+
+
+def get_comet_experiment() -> Experiment:
+    """
+    Creates a comet experiment with the right project configuration. 
+    It will get the api key from this environment variable: COMET_API_KEY
+    """
+    comet_api_key = os.environ.get('COMET_API_KEY')
+    experiment = Experiment(
+        api_key=comet_api_key,
+        project_name=COMET_PROJECT_NAME,
+        workspace=COMET_WORKSPACE,
+    )
+    return experiment
 
 
 def get_shot_distance(x: int, y: int, team_rink_side_right: bool) -> int:

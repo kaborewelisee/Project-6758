@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import generic_util
+from comet_ml import Experiment
+import os
 
 
 def get_features_sub_question_1(raw_df: pd.DataFrame) -> pd.DataFrame:
@@ -78,6 +80,25 @@ def add_features_sub_question_3(clean_df: pd.DataFrame) -> pd.DataFrame:
     return clean_df
 
 
+def upload_exemple_sub_question_5(df: pd.DataFrame):
+    
+    game_id = 2017021065
+    subset_df = df[df["game_id"] == game_id]
+
+    experiment = generic_util.get_comet_experiment()
+
+    experiment.log_dataframe_profile(
+        subset_df, 
+        name='wpg_v_wsh_2017021065',  # keep this name
+        dataframe_format='csv'  # ensure you set this flag!
+    )
+
+    print("Data uploaded to comet!")
+
+
+
+
+
 if __name__ == "__main__":
     # csv_path = './data/train.csv'
 
@@ -87,8 +108,13 @@ if __name__ == "__main__":
     # clean_df.to_csv('./data/train-q4-2.csv', index=False)
     # clean_df
 
-    clean_df = pd.read_csv('./data/train-q4-2.csv')
-    clean_df = add_features_sub_question_3(clean_df)
-    clean_df.to_csv('./data/train-q4-3.csv', index=False)
-    clean_df
+    # clean_df = pd.read_csv('./data/train-q4-2.csv')
+    # clean_df = add_features_sub_question_3(clean_df)
+    # clean_df.to_csv('./data/train-q4-3.csv', index=False)
+    # clean_df
+
+    clean_df = pd.read_csv('./data/train-q4-3.csv')
+    upload_exemple_sub_question_5(clean_df)
+
+
 
