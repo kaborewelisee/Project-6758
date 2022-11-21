@@ -1,13 +1,18 @@
 import numpy as np
 import pandas as pd
 from comet_ml import Experiment
+import matplotlib.pyplot as plt
 import os
+import seaborn as sns
+
 
 COMET_PROJECT_NAME = "ift6758-project"
 COMET_WORKSPACE = "ift6758-22-milestone-2"
 
 NET_ABSOLUTE_COORD_X = 89
 NET_COORD_Y = 0
+
+sns.set(style="darkgrid")
 
 
 def get_comet_experiment() -> Experiment:
@@ -78,6 +83,31 @@ def get_shot_angle(x: int, y: int, team_rink_side_right: bool, shooter_right_han
 
     return angle
 
+
+def plot_goals_rate_pdf(y_true, y_probas):
+    """
+    Plot the PDF of the goals rate in function of the model prediction scores
+
+    Arguments:
+    - y_probas: model probabilities predicted
+    - y_true: true values of the target
+    """
+
+    pdf = []
+    x = []
+    for i in range(100):
+        threshold = np.percentile(y_probas, i)
+        goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 1])
+        non_goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 0])
+        pdf.append(100*(goals / (goals + non_goals)))
+        x.append(i)
+
+    sns.lineplot(x=x, y=pdf)
+    plt.ylim(0, 100)
+    plt.title('Goal Rate')
+    plt.ylabel('Goals / (Goals + Shoots)')
+    plt.xlabel('Shot Probability Model Percentile')
+    plt.show()
 
 
 if __name__ == "__main__":
