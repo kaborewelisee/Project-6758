@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import os
 import seaborn as sns
 
+import math
 
 COMET_PROJECT_NAME = "ift6758-project"
 COMET_WORKSPACE = "ift6758-22-milestone-2"
@@ -29,7 +30,7 @@ def get_comet_experiment() -> Experiment:
     return experiment
 
 
-def get_shot_distance(x: int, y: int, team_rink_side_right: bool) -> int:
+def get_shot_distance(x: int, y: int, team_rink_side_right: bool) -> float:
     """
     Calculate the shot distance to the net
 
@@ -47,9 +48,20 @@ def get_shot_distance(x: int, y: int, team_rink_side_right: bool) -> int:
     return np.sqrt((x-net_x)**2 + (y-NET_COORD_Y)**2)
 
 
-def get_shot_angle(x: int, y: int, team_rink_side_right: bool, shooter_right_handed: bool) -> int:
+def get_signed_shot_angle(rigth_side_ref_x: int, right_side_ref_y: int) -> float:
     """
-    Calculate the shot angle
+    Calculate the signed angle from shot and x-absciss
+
+    Arguments:
+    - rigth_side_ref_x: x coord normalized to right rink side
+    - rigth_side_ref_y: y coord normalized to right rink side
+    """
+    return math.degrees(math.atan2(NET_COORD_Y - right_side_ref_y, NET_ABSOLUTE_COORD_X - rigth_side_ref_x))
+
+
+def get_shot_angle(x: int, y: int, team_rink_side_right: bool, shooter_right_handed: bool) -> float:
+    """
+    Calculate the shot angle from the net line
 
     Arguments:
     - x: shooter x coordinate on ice
@@ -61,7 +73,7 @@ def get_shot_angle(x: int, y: int, team_rink_side_right: bool, shooter_right_han
     angle = 0
 
     if y == 0:
-        angle = np.pi / 2
+        angle = 90
         return angle
 
     if(team_rink_side_right):
@@ -81,7 +93,7 @@ def get_shot_angle(x: int, y: int, team_rink_side_right: bool, shooter_right_han
         if (y < 0 and shooter_right_handed) or (y > 0 and not shooter_right_handed):
             angle = np.pi - angle
 
-    return angle
+    return math.degrees(angle)
 
 
 def plot_goals_rate_pdf(y_true, y_probas):
