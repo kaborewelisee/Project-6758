@@ -42,14 +42,13 @@ def makes_features():
     print(df['team_rink_side_right'].value_counts())
     print(df['team_rink_side_right'].describe())
 
-
     df['coordinates_x'] = np.where(df['team_rink_side_right'], -df['coordinates_x'], df['coordinates_x'])
     df['coordinates_y'] = np.where(df['team_rink_side_right'], -df['coordinates_y'], df['coordinates_y'])
 
     net_pos = (89, 0)
     features = pd.DataFrame()
     features['dist_net'] = np.sqrt((net_pos[0] - df['coordinates_x'])**2 + (net_pos[1] - df['coordinates_y'])**2)
-    features['angle_shoot'] = df.apply(
+    features['shot_angle'] = df.apply(
         lambda x: math.degrees(math.atan2(net_pos[1] - x['coordinates_y'], net_pos[0] - x['coordinates_x'])),
         axis=1
     )
@@ -58,29 +57,29 @@ def makes_features():
     features['empty_net'] = np.where(df['goal_empty_net'].isna(), 0, np.where(df['goal_empty_net'], 1, 0))
 
     print(df['coordinates_x'].describe())
-    print(features[['event_type', 'empty_net', 'dist_net', 'angle_shoot']])
+    print(features[['event_type', 'empty_net', 'dist_net', 'shot_angle']])
 
     ax = sns.histplot(data=features, x="dist_net", hue="event_type", multiple="stack").set(title='Shootings & Goals by Distance from Net')
     # ax.legend()
     # plt.legend()
     plt.show()
 
-    sns.histplot(data=features, x="angle_shoot", hue="event_type", multiple="stack").set(title='Shootings & Goals by Shooting Angle')
+    sns.histplot(data=features, x="shot_angle", hue="event_type", multiple="stack").set(title='Shootings & Goals by Shooting Angle')
     # plt.legend()
     plt.show()
 
-    sns.jointplot(data=features, x="dist_net", y="angle_shoot", hue="event_type")
+    sns.jointplot(data=features, x="dist_net", y="shot_angle", hue="event_type")
     # plt.legend()
     # plt.title('Shootings & Goals by Distance from Net & Shooting Angle')
     plt.show()
 
     # Question 2.2
     prob_plot(features, 'dist_net')
-    prob_plot(features, 'angle_shoot')
+    prob_plot(features, 'shot_angle')
 
     # Question 2.3
     df_goal = features[features['event_type'] == 'GOAL']
-    sns.histplot(data=df_goal, x="angle_shoot", hue="empty_net", multiple="stack").set(title='Goals by Shooting Angle')
+    sns.histplot(data=df_goal, x="shot_angle", hue="empty_net", multiple="stack").set(title='Goals by Shooting Angle')
     # plt.legend()
     plt.show()
     sns.histplot(data=df_goal, x="dist_net", hue="empty_net", multiple="stack").set(title='Goals by Distance from Net')

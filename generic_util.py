@@ -3,7 +3,9 @@ import pandas as pd
 from comet_ml import Experiment
 import matplotlib.pyplot as plt
 import os
+import scipy
 import seaborn as sns
+from sklearn.preprocessing import MinMaxScaler
 
 
 COMET_PROJECT_NAME = "ift6758-project"
@@ -84,7 +86,53 @@ def get_shot_angle(x: int, y: int, team_rink_side_right: bool, shooter_right_han
     return angle
 
 
-def plot_goals_rate_pdf(y_true, y_probas):
+def scale_features(features, feature_range=(0, 1)):
+    """
+    Scale the features DF between a given range.
+
+    Arguments:
+        - features: DF of the features we want to scale
+        - feature_range: (Min, Max) tuple of the range we want the features values to be in
+
+    Return:
+        - Return the scale features DF
+    """
+    scaler = MinMaxScaler(feature_range=(0, 1)).fit(features)
+    scaled = scaler.transform(features)
+    features = pd.DataFrame(scaled, index=features.index, columns=features.columns)
+
+    return features
+
+
+def plot_goals_rate_pdf(y_true, models_probas, labels):
+    """
+    Plot the PDF of the goals rate in function of the model prediction scores
+
+    Arguments:
+    - y_true: true values of the target
+    - y_probas: lists of model probabilities predicted for a list of models
+    """
+
+    pdf = []
+    x = []
+    for y_probas, label in zip(models_probas, labels):
+        for i in range(100):
+            threshold = np.percentile(y_probas, i)
+            goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 1])
+            non_goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 0])
+            pdf.append(100*(goals / (goals + non_goals)))
+            x.append(i)
+        sns.lineplot(x=x, y=pdf, label=label)
+
+    plt.ylim(0, 100)
+    plt.legend()
+    plt.title('Goal Rate')
+    plt.ylabel('Goals / (Goals + Shoots)')
+    plt.xlabel('Shot Probability Model Percentile')
+    plt.show()
+
+
+def plot_goals_rate_cdf(y_true, models_probas, labels):
     """
     Plot the PDF of the goals rate in function of the model prediction scores
 
@@ -95,15 +143,18 @@ def plot_goals_rate_pdf(y_true, y_probas):
 
     pdf = []
     x = []
-    for i in range(100):
-        threshold = np.percentile(y_probas, i)
-        goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 1])
-        non_goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 0])
-        pdf.append(100*(goals / (goals + non_goals)))
-        x.append(i)
+    for y_probas, label in zip(models_probas, labels):
+        for i in range(100):
+            threshold = np.percentile(y_probas, i)
+            goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 1])
+            non_goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 0])
+            pdf.append(goals / (goals + non_goals))
+            x.append(i)
+        cdf = np.cumsum(pdf)
+        sns.lineplot(x=x, y=cdf)
 
-    sns.lineplot(x=x, y=pdf)
     plt.ylim(0, 100)
+    plt.legend()
     plt.title('Goal Rate')
     plt.ylabel('Goals / (Goals + Shoots)')
     plt.xlabel('Shot Probability Model Percentile')
