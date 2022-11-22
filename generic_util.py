@@ -144,7 +144,7 @@ def plot_goals_rate_pdf(y_true, models_probas, labels):
     plt.show()
 
 
-def plot_goals_rate_cdf(y_true, models_probas, labels):
+def plot_goals_rate_cdf_v2(y_true, models_probas, labels):
     """
     Plot the PDF of the goals rate in function of the model prediction scores
 
@@ -167,8 +167,39 @@ def plot_goals_rate_cdf(y_true, models_probas, labels):
 
     plt.ylim(0, 100)
     plt.legend()
-    plt.title('Goal Rate')
-    plt.ylabel('Goals / (Goals + Shoots)')
+    plt.title('Cumulative % of goals')
+    plt.ylabel('Proportion')
+    plt.xlabel('Shot Probability Model Percentile')
+    plt.show()
+
+
+def plot_goals_rate_cdf(y_true, models_probas, labels):
+    """
+    Plot the PDF of the goals rate in function of the model prediction scores
+
+    Arguments:
+    - y_probas: model probabilities predicted
+    - y_true: true values of the target
+    """
+
+    cdf = []
+    x = []
+    for y_probas, label in zip(models_probas, labels):
+        data = pd.DataFrame()
+        goals_tot = sum(y_true)
+        for i in range(100):
+            threshold = np.percentile(y_probas, i)
+            goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob <= threshold and y == 1])
+            cdf.append(100*(goals / goals_tot))
+            x.append(i)
+        data['x'] = x
+        data['cdf'] = cdf
+        sns.lineplot(data=data, x=x, y=cdf)
+
+    plt.ylim(0, 100)
+    plt.legend()
+    plt.title('Cumulative % of goals')
+    plt.ylabel('Proportion (%)')
     plt.xlabel('Shot Probability Model Percentile')
     plt.show()
 

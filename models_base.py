@@ -79,11 +79,10 @@ def main():
             y_val = np.array(val['is_goal']).reshape(-1, 1)
             y_val = [y[0] for y in y_val]
             y_pred = clf.predict(X_val)
-            print(np.mean(y_pred))
+            print('Predictions Mean:', np.mean(y_pred), '\n')
 
             acc = accuracy_score(y_val, y_pred)
-            print(acc)
-            print(X_val)
+            print('Accuracy:', acc, '\n')
             # Questions 3.2 et 3.3
             y_probas = clf.predict_proba(X_val)
             y_probas = [y[1] for y in y_probas]
@@ -99,7 +98,7 @@ def main():
         #                                   estimator_name=label)
         # display.plot()
         print(label)
-        print('AUC:', auc(fpr, tpr))
+        print('AUC:', auc(fpr, tpr), '\n')
         plt.plot(fpr, tpr, label=label)
 
     plt.legend()
@@ -119,10 +118,6 @@ def main():
     plt.show()
     disp = CalibrationDisplay.from_predictions(y_val, y_probas)
     plt.show()
-
-    # Question 3.3
-
-
 
 if __name__ == "__main__":
     main()
