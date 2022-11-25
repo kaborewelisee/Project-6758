@@ -28,7 +28,7 @@ def removeInvalidData(df: pd.DataFrame) -> pd.DataFrame:
     df = df[~df['team_rink_side_right'].isnull()].copy()
     df['team_rink_side_right'] = df['team_rink_side_right'].astype('bool')
     #remove invalid last coordinate
-    df = df[~(df['last_coordinates_x'].isnull() | df['coordinates_x'].isnull())]
+    df = df[~(df['last_coordinates_x'].isnull() | df['last_coordinates_y'].isnull() | df['coordinates_x'].isnull() | df['coordinates_y'].isnull())]
     #Remove invalid goal
     DEFENSIVE_ZONE_X = 25
     isNotEmptyNetGoal = (df['is_goal'] == 1) & (df['empty_net'] == 0)
@@ -55,7 +55,23 @@ def augment_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-if __name__ == "__main__":
+def train_neural_net(x_train: pd.DataFrame, x_val: pd.DataFrame, y_train: pd.DataFrame, y_val):
+
+    #x_train, x_val, y_train, y_val = generic_util.split_train_test(df)
     print()
+
+
+if __name__ == "__main__":
+    csv_path = './data/train-q4-3.csv'
+    df = pd.read_csv(csv_path)
+
+    df = removeInvalidData(df)
+    df = getRequiredFeatures(df)
+    df = transform_data(df)
+    df = augment_data(df)
+
+    x_train, x_val, y_train, y_val = generic_util.split_train_test(df)
+
+    train_neural_net(x_train, x_val, y_train, y_val)
 
 
