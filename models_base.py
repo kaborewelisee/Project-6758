@@ -19,6 +19,8 @@ from generic_util import plot_goals_rate_pdf, \
                             plot_goals_rate_cdf, \
                             scale_features
 
+from milestone_2_question_6 import removeInvalidData
+
 sns.set(style="darkgrid")
 
 
@@ -26,12 +28,18 @@ def main():
 
     # Question 3.1
     features = pd.read_csv('data/train-q4-3.csv')
-    features = features[['shot_distance', 'shot_angle', 'hand_based_shot_angle', 'is_goal']]
     features = features[~features['shot_distance'].isna()]
     features = features[~features['shot_angle'].isna()]
     features = features[~features['is_goal'].isna()]
     print(features[['shot_distance', 'shot_angle', 'hand_based_shot_angle', 'is_goal']])
 
+    # Remove invalid goal
+    features = removeInvalidData(features)
+
+    features['coordinates_x'] = np.where(features['team_rink_side_right'], -features['coordinates_x'], features['coordinates_x'])
+    features['coordinates_y'] = np.where(features['team_rink_side_right'], -features['coordinates_y'], features['coordinates_y'])
+
+    features = features[['shot_distance', 'shot_angle', 'hand_based_shot_angle', 'is_goal']]
     # Scale Features
     # features[['shot_distance', 'shot_angle', 'hand_based_shot_angle']] = scale_features(features[['shot_distance', 'shot_angle', 'hand_based_shot_angle']])
 

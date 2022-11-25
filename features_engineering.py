@@ -42,13 +42,13 @@ def makes_features():
     print(df['team_rink_side_right'].value_counts())
     print(df['team_rink_side_right'].describe())
 
-    df['coordinates_x'] = np.where(df['team_rink_side_right'], -df['coordinates_x'], df['coordinates_x'])
-    df['coordinates_y'] = np.where(df['team_rink_side_right'], -df['coordinates_y'], df['coordinates_y'])
+    features = pd.DataFrame()
+    features['coordinates_x'] = np.where(df['team_rink_side_right'], -df['coordinates_x'], df['coordinates_x'])
+    features['coordinates_y'] = np.where(df['team_rink_side_right'], -df['coordinates_y'], df['coordinates_y'])
 
     net_pos = (89, 0)
-    features = pd.DataFrame()
-    features['dist_net'] = np.sqrt((net_pos[0] - df['coordinates_x'])**2 + (net_pos[1] - df['coordinates_y'])**2)
-    features['shot_angle'] = df.apply(
+    features['dist_net'] = np.sqrt((net_pos[0] - features['coordinates_x'])**2 + (net_pos[1] - features['coordinates_y'])**2)
+    features['shot_angle'] = features.apply(
         lambda x: math.degrees(math.atan2(net_pos[1] - x['coordinates_y'], net_pos[0] - x['coordinates_x'])),
         axis=1
     )
@@ -87,7 +87,7 @@ def makes_features():
     plt.show()
 
     # Filter goals from non empty net and in the defensive zone
-    features = features[~((df['coordinates_x'] > 125) & (features['empty_net'] == 0) & (features['event_type'] == 'GOAL'))]
+    features = features[~((features['coordinates_x'] < -25) & (features['empty_net'] == 0) & (features['event_type'] == 'GOAL'))]
     df_goal = features[features['event_type'] == 'GOAL']
     sns.histplot(data=df_goal, x="dist_net", hue="empty_net", multiple="stack").set(title='Goals by Distance from Net (with filter)')
     # plt.legend()

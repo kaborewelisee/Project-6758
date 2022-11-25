@@ -125,50 +125,23 @@ def plot_goals_rate_pdf(y_true, models_probas, labels):
     - y_probas: lists of model probabilities predicted for a list of models
     """
 
-    pdf = []
-    x = []
-    for y_probas, label in zip(models_probas, labels):
+    colors = ['b', 'r', 'g', 'orange']
+    for y_probas, label, color in zip(models_probas, labels, colors):
+        pdf = []
+        x = []
         for i in range(100):
             threshold = np.percentile(y_probas, i)
             goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 1])
             non_goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 0])
             pdf.append(100*(goals / (goals + non_goals)))
             x.append(i)
-        sns.lineplot(x=x, y=pdf, label=label)
+        # sns.lineplot(x=x, y=pdf, label=label)
+        plt.plot(x, pdf, color=color, label=label)
 
     plt.ylim(0, 100)
     plt.legend()
     plt.title('Goal Rate')
     plt.ylabel('Goals / (Goals + Shoots)')
-    plt.xlabel('Shot Probability Model Percentile')
-    plt.show()
-
-
-def plot_goals_rate_cdf_v2(y_true, models_probas, labels):
-    """
-    Plot the PDF of the goals rate in function of the model prediction scores
-
-    Arguments:
-    - y_probas: model probabilities predicted
-    - y_true: true values of the target
-    """
-
-    pdf = []
-    x = []
-    for y_probas, label in zip(models_probas, labels):
-        for i in range(100):
-            threshold = np.percentile(y_probas, i)
-            goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 1])
-            non_goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 0])
-            pdf.append(goals / (goals + non_goals))
-            x.append(i)
-        cdf = np.cumsum(pdf)
-        sns.lineplot(x=x, y=cdf)
-
-    plt.ylim(0, 100)
-    plt.legend()
-    plt.title('Cumulative % of goals')
-    plt.ylabel('Proportion')
     plt.xlabel('Shot Probability Model Percentile')
     plt.show()
 
@@ -182,19 +155,22 @@ def plot_goals_rate_cdf(y_true, models_probas, labels):
     - y_true: true values of the target
     """
 
-    cdf = []
-    x = []
-    for y_probas, label in zip(models_probas, labels):
-        data = pd.DataFrame()
-        goals_tot = sum(y_true)
+    goals_tot = sum(y_true)
+    colors = ['b', 'r', 'g', 'orange']
+    for y_probas, label, color in zip(models_probas, labels, colors):
+        cdf = []
+        x = []
+        # data = pd.DataFrame()
         for i in range(100):
             threshold = np.percentile(y_probas, i)
-            goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob <= threshold and y == 1])
+            goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob >= threshold and y == 1])
+            # goals = len([y_prob for y_prob, y in zip(y_probas, y_true) if y_prob <= threshold and y == 1])
             cdf.append(100*(goals / goals_tot))
             x.append(i)
-        data['x'] = x
-        data['cdf'] = cdf
-        sns.lineplot(data=data, x=x, y=cdf)
+        # data['x'] = x
+        # data['cdf'] = cdf
+        # sns.lineplot(data=data, x=x, y=cdf)
+        plt.plot(x, cdf, color=color, label=label)
 
     plt.ylim(0, 100)
     plt.legend()
