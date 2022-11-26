@@ -117,7 +117,7 @@ def scale_features(features, feature_range=(0, 1)):
     return features
 
 
-def plot_goals_rate_pdf(y_true, models_probas, labels, image_file_name = None):
+def plot_goals_rate_pdf(y_true, models_probas, labels, image_file_name=None):
     """
     Plot the PDF of the goals rate in function of the model prediction scores
 
@@ -151,7 +151,7 @@ def plot_goals_rate_pdf(y_true, models_probas, labels, image_file_name = None):
 
 
 
-def plot_goals_rate_cdf(y_true, models_probas, labels, image_file_name = None):
+def plot_goals_rate_cdf(y_true, models_probas, labels, image_file_name=None):
     """
     Plot the PDF of the goals rate in function of the model prediction scores
 
