@@ -1,25 +1,17 @@
-# import comet_ml
-import math
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
 import pickle
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import roc_curve, auc, RocCurveDisplay
+from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import label_binarize
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.metrics import roc_auc_score
 from sklearn.calibration import CalibrationDisplay
 
 from generic_util import plot_goals_rate_pdf, \
                             plot_goals_rate_cdf, \
-                            get_comet_experiment, \
-                            scale_features
+                            get_comet_experiment
 
 from milestone_2_question_6 import removeInvalidData
 
