@@ -60,16 +60,19 @@ def makes_features():
     print(features[['event_type', 'empty_net', 'dist_net', 'shot_angle']])
 
     ax = sns.histplot(data=features, x="dist_net", hue="event_type", multiple="stack").set(title='Shootings & Goals by Distance from Net')
+    plt.savefig(f'./plots/question_2/Shootings & Goals by Distance from Net')
     # ax.legend()
     # plt.legend()
     plt.show()
 
     sns.histplot(data=features, x="shot_angle", hue="event_type", multiple="stack").set(title='Shootings & Goals by Shooting Angle')
+    plt.savefig(f'./plots/question_2/Shootings & Goals by Shooting Angle')
     # plt.legend()
     plt.show()
 
     sns.jointplot(data=features, x="dist_net", y="shot_angle", hue="event_type")
     # plt.legend()
+    plt.savefig(f'./plots/question_2/Shootings & Goals by Distance from Net & Shooting Angle')
     # plt.title('Shootings & Goals by Distance from Net & Shooting Angle')
     plt.show()
 
