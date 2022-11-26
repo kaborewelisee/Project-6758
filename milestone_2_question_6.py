@@ -12,6 +12,9 @@ from sklearn.calibration import CalibrationDisplay
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import StandardScaler
+import time
 import pickle
 
 
@@ -243,7 +246,7 @@ def train_random_forest(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd
     print()
 
 
-def mlp_classifier(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.DataFrame, y_test):
+def train_mlp_classifier(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.DataFrame, y_test):
 
     experiment = generic_util.get_comet_experiment()
 
@@ -274,23 +277,155 @@ def mlp_classifier(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Data
         dataframe_format='csv'  # ensure you set this flag!
     )
 
-    # nb = 
+    max_iter = 50
+    cv = 5
+    n_jobs = -1
+    nb_features = len(X_test.columns)
+    mlp_grid_search = MLPClassifier(max_iter=max_iter, early_stopping=True)
+    search_parameters = {
+        'hidden_layer_sizes': [(nb_features, nb_features // 2, nb_features // 4), (nb_features,)],
+        'activation': ['tanh', 'relu'],
+        'solver': ['adam'],
+        'alpha': [0.0001, 0.05],
+        'learning_rate': ['constant', 'adaptive']
+    }
 
-    clf = MLPClassifier(solver='adam', alpha=1e-5, hidden_layer_sizes=(, 2), random_state=1)
+    clf = GridSearchCV(estimator=mlp_grid_search, param_grid=search_parameters, n_jobs=n_jobs, cv=cv)
+    clf.fit(X_train.values, y_train)
 
-    experiment.log_parameters(clf.get_params)
+    search_parameters['n_jobs'] = n_jobs
+    search_parameters['cv'] = cv
+    search_parameters['max_iter'] = max_iter
+    experiment.log_parameters(search_parameters)
+    experiment.log_parameters(clf.best_estimator_, prefix='best_param_')
 
-    clf.fit(X_train, y_train)
-
-    filename = './data/question-6-random-forest-classifier/question-6-random-forest-base.sav'
+    filename = './data/question-6-mlp-classifier/question-6-mlp-classifier-base.sav'
     pickle.dump(clf, open(filename, 'wb'))
 
-    experiment.log_model('question-6-random-forest-classifier-base', filename)
+    experiment.log_model('question-6-mlp-classifier-base', filename)
 
     models_probas = []
     labels = [
         'Base Uniform Model',
-        'Decision Tree'
+        'MLP'
+    ]
+
+    y_probas = [0.5] * len(X_test)
+    models_probas.append(y_probas)
+
+    y_pred = clf.predict(X_test.values)
+    print('Predictions Mean:', np.mean(y_pred), '\n')
+
+    acc = accuracy_score(y_test, y_pred)
+    print('Accuracy:', acc, '\n')
+
+    y_probas = clf.predict_proba(X_test.values)
+    y_probas = [y[1] for y in y_probas]
+    models_probas.append(y_probas)
+
+    #Create ROC plot
+    for y_probas, label in zip(models_probas, labels):
+        fpr, tpr, thresholds = roc_curve(y_test, y_probas)
+        roc_auc = auc(fpr, tpr)
+        plt.plot(fpr, tpr, label=label)
+
+    plt.legend()
+    plt.title('Receiver Operating Characteristic (ROC)')
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.savefig('./data/question-6-mlp-classifier/roc.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier/roc.jpeg')
+
+    #Create goals rate pdf plot
+    generic_util.plot_goals_rate_pdf(y_test, models_probas, labels, './data/question-6-mlp-classifier/pdf.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier/pdf.jpeg')
+
+    #Create goals rate cdf plot
+    generic_util.plot_goals_rate_cdf(y_test, models_probas, labels, './data/question-6-mlp-classifier/cdf.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier/cdf.jpeg')
+
+    #create fiabily curve from estimator
+    disp = CalibrationDisplay.from_estimator(clf, X_test.values, y_test)
+    plt.savefig('./data/question-6-mlp-classifier/calibration-estimator.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier/calibration-estimator.jpeg')
+
+    #create fiabily curve from prediction
+    disp = CalibrationDisplay.from_predictions(y_test, y_probas)
+    plt.savefig('./data/question-6-mlp-classifier/calibration-prediction.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier/calibration-prediction.jpeg')
+
+    print()
+
+
+def train_mlp_classifier_scaled(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.DataFrame, y_test):
+
+    experiment = generic_util.get_comet_experiment()
+
+    experiment.set_name("question-6-mlp-classifier-scaled")
+    experiment.add_tags(["question-6", "MLP", "classifier", "scaled"])
+
+    experiment.log_dataframe_profile(
+        X_train, 
+        name='X_train',  # keep this name
+        dataframe_format='csv'  # ensure you set this flag!
+    )
+
+    experiment.log_dataframe_profile(
+        X_test, 
+        name='X_test',  # keep this name
+        dataframe_format='csv'  # ensure you set this flag!
+    )
+
+    experiment.log_dataframe_profile(
+        y_train, 
+        name='y_train',  # keep this name
+        dataframe_format='csv'  # ensure you set this flag!
+    )
+
+    experiment.log_dataframe_profile(
+        y_test, 
+        name='y_test',  # keep this name
+        dataframe_format='csv'  # ensure you set this flag!
+    )
+
+    nb_features = len(X_test.columns)
+
+    scaler = StandardScaler()
+    scaler = scaler.fit(X_train)
+
+    X_train = scaler.transform(X_train)
+    X_test = scaler.transform(X_test)
+
+    max_iter = 50
+    cv = 5
+    n_jobs = -1
+    mlp_grid_search = MLPClassifier(max_iter=max_iter, early_stopping=True)
+    search_parameters = {
+        'hidden_layer_sizes': [(nb_features, nb_features // 2, nb_features // 4), (nb_features,)],
+        'activation': ['tanh', 'relu'],
+        'solver': ['adam'],
+        'alpha': [0.0001, 0.05],
+        'learning_rate': ['constant', 'adaptive']
+    }
+
+    clf = GridSearchCV(estimator=mlp_grid_search, param_grid=search_parameters, n_jobs=n_jobs, cv=cv)
+    clf.fit(X_train, y_train)
+
+    search_parameters['n_jobs'] = n_jobs
+    search_parameters['cv'] = cv
+    search_parameters['max_iter'] = max_iter
+    experiment.log_parameters(search_parameters)
+    # experiment.log_parameters(clf.best_estimator_, prefix='best_param_')
+
+    filename = './data/question-6-mlp-classifier-scaled/question-6-mlp-classifier-scaled.sav'
+    pickle.dump(clf, open(filename, 'wb'))
+
+    experiment.log_model('question-6-mlp-classifier-scaled', filename)
+
+    models_probas = []
+    labels = [
+        'Base Uniform Model',
+        'MLP scaled'
     ]
 
     y_probas = [0.5] * len(X_test)
@@ -316,28 +451,91 @@ def mlp_classifier(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Data
     plt.title('Receiver Operating Characteristic (ROC)')
     plt.ylabel('True Positive Rate')
     plt.xlabel('False Positive Rate')
-    plt.savefig('./data/question-6-random-forest-classifier/roc.jpeg')
-    experiment.log_image('./data/question-6-random-forest-classifier/roc.jpeg')
+    plt.savefig('./data/question-6-mlp-classifier-scaled/roc.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/roc.jpeg')
 
     #Create goals rate pdf plot
-    generic_util.plot_goals_rate_pdf(y_test, models_probas, labels, './data/question-6-random-forest-classifier/pdf.jpeg')
-    experiment.log_image('./data/question-6-random-forest-classifier/pdf.jpeg')
+    generic_util.plot_goals_rate_pdf(y_test, models_probas, labels, './data/question-6-mlp-classifier-scaled/pdf.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/pdf.jpeg')
 
     #Create goals rate cdf plot
-    generic_util.plot_goals_rate_cdf(y_test, models_probas, labels, './data/question-6-random-forest-classifier/cdf.jpeg')
-    experiment.log_image('./data/question-6-random-forest-classifier/cdf.jpeg')
+    generic_util.plot_goals_rate_cdf(y_test, models_probas, labels, './data/question-6-mlp-classifier-scaled/cdf.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/cdf.jpeg')
 
     #create fiabily curve from estimator
     disp = CalibrationDisplay.from_estimator(clf, X_test, y_test)
-    plt.savefig('./data/question-6-random-forest-classifier/calibration-estimator.jpeg')
-    experiment.log_image('./data/question-6-random-forest-classifier/calibration-estimator.jpeg')
+    plt.savefig('./data/question-6-mlp-classifier-scaled/calibration-estimator.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/calibration-estimator.jpeg')
 
     #create fiabily curve from prediction
     disp = CalibrationDisplay.from_predictions(y_test, y_probas)
-    plt.savefig('./data/question-6-random-forest-classifier/calibration-prediction.jpeg')
-    experiment.log_image('./data/question-6-random-forest-classifier/calibration-prediction.jpeg')
+    plt.savefig('./data/question-6-mlp-classifier-scaled/calibration-prediction.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/calibration-prediction.jpeg')
 
     print()
+
+
+def upload_to_comet(X_train, X_test, y_train, y_test):
+    experiment = generic_util.get_comet_experiment()
+
+    experiment.set_name("question-6-mlp-classifier-scaled")
+    experiment.add_tags(["question-6", "MLP", "classifier", "scaled"])
+
+    experiment.log_dataframe_profile(
+        X_train, 
+        name='X_train',  # keep this name
+        dataframe_format='csv'  # ensure you set this flag!
+    )
+
+    experiment.log_dataframe_profile(
+        X_test, 
+        name='X_test',  # keep this name
+        dataframe_format='csv'  # ensure you set this flag!
+    )
+
+    experiment.log_dataframe_profile(
+        pd.DataFrame(y_train), 
+        name='y_train',  # keep this name
+        dataframe_format='csv'  # ensure you set this flag!
+    )
+
+    experiment.log_dataframe_profile(
+        pd.DataFrame(y_test), 
+        name='y_test',  # keep this name
+        dataframe_format='csv'  # ensure you set this flag!
+    )
+
+    nb_features = len(X_test.columns)
+
+    max_iter = 50
+    cv = 5
+    n_jobs = -1
+    search_parameters = {
+        'hidden_layer_sizes': [(nb_features, nb_features // 2, nb_features // 4), (nb_features,)],
+        'activation': ['tanh', 'relu'],
+        'solver': ['adam'],
+        'alpha': [0.0001, 0.05],
+        'learning_rate': ['constant', 'adaptive']
+    }
+
+    search_parameters['n_jobs'] = n_jobs
+    search_parameters['cv'] = cv
+    search_parameters['max_iter'] = max_iter
+    experiment.log_parameters(search_parameters)
+
+    filename = './data/question-6-mlp-classifier-scaled/question-6-mlp-classifier-scaled.sav'
+    experiment.log_model('question-6-mlp-classifier-scaled', filename)
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/roc.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/pdf.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/cdf.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/calibration-estimator.jpeg')
+    experiment.log_image('./data/question-6-mlp-classifier-scaled/calibration-prediction.jpeg')
+
+    time.sleep(4 * 60)
+    print()
+
+
+
 
 
 
@@ -352,11 +550,13 @@ if __name__ == "__main__":
 
     X_train, X_test, y_train, y_test = generic_util.split_train_test(df)
 
-    # train_decision_tree(X_train, X_test, y_train, y_test)
+    train_decision_tree(X_train, X_test, y_train, y_test)
 
-    # train_random_forest(X_train, X_test, y_train, y_test)
+    train_random_forest(X_train, X_test, y_train, y_test)
 
-    train_mlp_classifier_forest(X_train, X_test, y_train, y_test)
+    train_mlp_classifier(X_train, X_test, y_train, y_test)
+
+    train_mlp_classifier_scaled(X_train, X_test, y_train, y_test)
 
 
 
