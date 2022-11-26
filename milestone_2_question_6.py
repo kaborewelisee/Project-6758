@@ -54,13 +54,6 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def augment_data(df: pd.DataFrame) -> pd.DataFrame:
-    goals = df[df['is_goal'] == 1]
-    duplicate = df.loc[goals.index.repeat(5)]
-    df = pd.concat([df, duplicate]).reset_index(drop=True)
-    return df
-
-
 def train_decision_tree(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.DataFrame, y_test):
 
     experiment = generic_util.get_comet_experiment()
@@ -548,17 +541,17 @@ if __name__ == "__main__":
     df = removeInvalidData(df)
     df = getRequiredFeatures(df)
     df = transform_data(df)
-    df = augment_data(df)
 
     X_train, X_test, y_train, y_test = generic_util.split_train_test(df)
 
-    #train_decision_tree(X_train, X_test, y_train, y_test)
+
+    train_decision_tree(X_train, X_test, y_train, y_test)
 
     train_random_forest(X_train, X_test, y_train, y_test)
 
-    #train_mlp_classifier(X_train, X_test, y_train, y_test)
+    train_mlp_classifier(X_train, X_test, y_train, y_test)
 
-    #train_mlp_classifier_scaled(X_train, X_test, y_train, y_test)
+    train_mlp_classifier_scaled(X_train, X_test, y_train, y_test)
 
 
 

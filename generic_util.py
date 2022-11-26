@@ -19,6 +19,13 @@ NET_COORD_Y = 0
 sns.set(style="darkgrid")
 
 
+def augment_data(df: pd.DataFrame) -> pd.DataFrame:
+    goals = df[df['is_goal'] == 1]
+    duplicate = df.loc[goals.index.repeat(5)]
+    df = pd.concat([df, duplicate]).reset_index(drop=True)
+    return df
+
+
 def get_comet_experiment() -> Experiment:
     """
     Creates a comet experiment with the right project configuration. 
@@ -197,6 +204,8 @@ def split_train_test(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.D
     - df: the dataframe to split
     """
     train, test = train_test_split(df, test_size=0.2, shuffle=True, random_state=60)
+
+    train = augment_data(train)
 
     y_train = np.array(train['is_goal']).reshape(-1, 1)
     y_train = [y[0] for y in y_train]
