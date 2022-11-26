@@ -81,13 +81,13 @@ def train_decision_tree(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd
     )
 
     experiment.log_dataframe_profile(
-        y_train, 
+        pd.DataFrame(y_train), 
         name='y_train',  # keep this name
         dataframe_format='csv'  # ensure you set this flag!
     )
 
     experiment.log_dataframe_profile(
-        y_test, 
+        pd.DataFrame(y_test), 
         name='y_test',  # keep this name
         dataframe_format='csv'  # ensure you set this flag!
     )
@@ -174,13 +174,13 @@ def train_random_forest(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd
     )
 
     experiment.log_dataframe_profile(
-        y_train, 
+        pd.DataFrame(y_train), 
         name='y_train',  # keep this name
         dataframe_format='csv'  # ensure you set this flag!
     )
 
     experiment.log_dataframe_profile(
-        y_test, 
+        pd.DataFrame(y_test), 
         name='y_test',  # keep this name
         dataframe_format='csv'  # ensure you set this flag!
     )
@@ -196,7 +196,7 @@ def train_random_forest(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd
     models_probas = []
     labels = [
         'Base Uniform Model',
-        'Decision Tree'
+        'Random Forest'
     ]
 
     y_probas = [0.5] * len(X_test)
@@ -243,6 +243,8 @@ def train_random_forest(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd
     plt.savefig('./data/question-6-random-forest-classifier/calibration-prediction.jpeg')
     experiment.log_image('./data/question-6-random-forest-classifier/calibration-prediction.jpeg')
 
+    time.sleep(3 * 60)
+
     print()
 
 
@@ -266,13 +268,13 @@ def train_mlp_classifier(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: p
     )
 
     experiment.log_dataframe_profile(
-        y_train, 
+        pd.DataFrame(y_train), 
         name='y_train',  # keep this name
         dataframe_format='csv'  # ensure you set this flag!
     )
 
     experiment.log_dataframe_profile(
-        y_test, 
+        pd.DataFrame(y_test), 
         name='y_test',  # keep this name
         dataframe_format='csv'  # ensure you set this flag!
     )
@@ -377,13 +379,13 @@ def train_mlp_classifier_scaled(X_train: pd.DataFrame, X_test: pd.DataFrame, y_t
     )
 
     experiment.log_dataframe_profile(
-        y_train, 
+        pd.DataFrame(y_train), 
         name='y_train',  # keep this name
         dataframe_format='csv'  # ensure you set this flag!
     )
 
     experiment.log_dataframe_profile(
-        y_test, 
+        pd.DataFrame(y_test), 
         name='y_test',  # keep this name
         dataframe_format='csv'  # ensure you set this flag!
     )
@@ -550,13 +552,13 @@ if __name__ == "__main__":
 
     X_train, X_test, y_train, y_test = generic_util.split_train_test(df)
 
-    train_decision_tree(X_train, X_test, y_train, y_test)
+    #train_decision_tree(X_train, X_test, y_train, y_test)
 
     train_random_forest(X_train, X_test, y_train, y_test)
 
-    train_mlp_classifier(X_train, X_test, y_train, y_test)
+    #train_mlp_classifier(X_train, X_test, y_train, y_test)
 
-    train_mlp_classifier_scaled(X_train, X_test, y_train, y_test)
+    #train_mlp_classifier_scaled(X_train, X_test, y_train, y_test)
 
 
 
