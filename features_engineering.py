@@ -26,7 +26,7 @@ def prob_plot(features, col):
     plt.xlabel(col)
     plt.ylabel('Goal Rate')
     plt.title(f'Goal Probability per {col}')
-    plt.savefig(f'pdf_{col}')
+    plt.savefig(f'./plots/question_2/pdf_{col}')
     plt.show()
 
 
@@ -81,9 +81,11 @@ def makes_features():
     df_goal = features[features['event_type'] == 'GOAL']
     sns.histplot(data=df_goal, x="shot_angle", hue="empty_net", multiple="stack").set(title='Goals by Shooting Angle')
     # plt.legend()
+    plt.savefig(f'./plots/question_2/Goals by Shooting Angle')
     plt.show()
     sns.histplot(data=df_goal, x="dist_net", hue="empty_net", multiple="stack").set(title='Goals by Distance from Net')
     # plt.legend()
+    plt.savefig(f'./plots/question_2/Goals by Distance from Net')
     plt.show()
 
     # Filter goals from non empty net and in the defensive zone
@@ -91,6 +93,7 @@ def makes_features():
     df_goal = features[features['event_type'] == 'GOAL']
     sns.histplot(data=df_goal, x="dist_net", hue="empty_net", multiple="stack").set(title='Goals by Distance from Net (with filter)')
     # plt.legend()
+    plt.savefig('./plots/question_2/Goals by Distance from Net (with filter)')
     plt.show()
 
     if not os.path.exists('data'):

@@ -6,6 +6,7 @@ import os
 import scipy
 import seaborn as sns
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
 
 import math
 
@@ -16,6 +17,13 @@ NET_ABSOLUTE_COORD_X = 89
 NET_COORD_Y = 0
 
 sns.set(style="darkgrid")
+
+
+def augment_data(df: pd.DataFrame) -> pd.DataFrame:
+    goals = df[df['is_goal'] == 1]
+    duplicate = df.loc[goals.index.repeat(5)]
+    df = pd.concat([df, duplicate]).reset_index(drop=True)
+    return df
 
 
 def get_comet_experiment() -> Experiment:
@@ -116,7 +124,7 @@ def scale_features(features, feature_range=(0, 1)):
     return features
 
 
-def plot_goals_rate_pdf(y_true, models_probas, labels):
+def plot_goals_rate_pdf(y_true, models_probas, labels, image_file_name=None):
     """
     Plot the PDF of the goals rate in function of the model prediction scores
 
@@ -143,10 +151,14 @@ def plot_goals_rate_pdf(y_true, models_probas, labels):
     plt.title('Goal Rate')
     plt.ylabel('Goals / (Goals + Shoots)')
     plt.xlabel('Shot Probability Model Percentile')
-    plt.show()
+    if(image_file_name is None):
+        plt.show()
+    else:
+        plt.savefig(image_file_name)
 
 
-def plot_goals_rate_cdf(y_true, models_probas, labels):
+
+def plot_goals_rate_cdf(y_true, models_probas, labels, image_file_name=None):
     """
     Plot the PDF of the goals rate in function of the model prediction scores
 
@@ -177,7 +189,34 @@ def plot_goals_rate_cdf(y_true, models_probas, labels):
     plt.title('Cumulative % of goals')
     plt.ylabel('Proportion (%)')
     plt.xlabel('Shot Probability Model Percentile')
-    plt.show()
+    if(image_file_name is None):
+        plt.show()
+    else:
+        plt.savefig(image_file_name)
+
+
+def split_train_test(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Split the data between train and test.
+    Returns X_train, X_test, y_train, y_test
+
+    Arguments:
+    - df: the dataframe to split
+    """
+    train, test = train_test_split(df, test_size=0.2, shuffle=True, random_state=60)
+
+    train = augment_data(train)
+
+    y_train = np.array(train['is_goal']).reshape(-1, 1)
+    y_train = [y[0] for y in y_train]
+
+    y_test = np.array(test['is_goal']).reshape(-1, 1)
+    y_test = [y[0] for y in y_test]
+
+    X_train = train.drop('is_goal', axis=1)
+    X_test = test.drop('is_goal', axis=1)
+    return X_train, X_test, y_train, y_test
+
 
 
 if __name__ == "__main__":

@@ -45,8 +45,11 @@ def add_features_sub_question_2(raw_df: pd.DataFrame, clean_df: pd.DataFrame) ->
 
             event_time = pd.to_datetime(raw_df['dateTime'][ind])
             previous_event_time = pd.to_datetime(previous_event_dateTime)
-            clean_df.loc[row_index, 'time_since_last_event'] = (event_time - previous_event_time).total_seconds()
-           
+            clean_df.loc[row_index, 'time_since_last_event'] = (event_time - previous_event_time).total_seconds() 
+
+            game_start_time = pd.to_datetime(raw_df['game_start_time'][ind])
+            clean_df.loc[row_index, 'game_elapsed_time'] = (event_time - game_start_time).total_seconds()
+
             if(previous_event_coord_x is None):
                 print('None coordinate x found')
                 previous_event_coord_x = 0
@@ -95,7 +98,7 @@ def upload_exemple_sub_question_5(df: pd.DataFrame):
     game_id = 2017021065
 
     subset_df = df[df["game_id"] == game_id]
-    subset_df = subset_df[['event_id', 'game_id', 'period', 'coordinates_x', 'coordinates_y', 'shot_type', 'game_period_seconds', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'is_goal', 'empty_net', 'last_event_type', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change']]
+    subset_df = subset_df[['event_id', 'game_id', 'period', 'coordinates_x', 'coordinates_y', 'shot_type', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'is_goal', 'empty_net', 'last_event_type', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change']]
 
     experiment = generic_util.get_comet_experiment()
 
@@ -110,22 +113,22 @@ def upload_exemple_sub_question_5(df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    # csv_path = './data/train.csv'
-    # df = pd.read_csv(csv_path)
-
-    # df = add_features_sub_question_1(df)
-    # df.to_csv('./data/train-q4-1.csv', index=False)
-
-    # raw_csv_path = './data/train-raw.csv'
-    # raw_df = pd.read_csv(raw_csv_path)
-    # df = add_features_sub_question_2(raw_df, df)
-    # df.to_csv('./data/train-q4-2.csv', index=False)
-
-    # df = add_features_sub_question_3(df)
-    # df.to_csv('./data/train-q4-3.csv', index=False)
-
-    csv_path = './data/train-q4-3.csv'
+    csv_path = './data/train.csv'
     df = pd.read_csv(csv_path)
+
+    df = add_features_sub_question_1(df)
+    df.to_csv('./data/train-q4-1.csv', index=False)
+
+    raw_csv_path = './data/train-raw.csv'
+    raw_df = pd.read_csv(raw_csv_path)
+    df = add_features_sub_question_2(raw_df, df)
+    df.to_csv('./data/train-q4-2.csv', index=False)
+
+    df = add_features_sub_question_3(df)
+    df.to_csv('./data/train-q4-3.csv', index=False)
+
+    # csv_path = './data/train-q4-3.csv'
+    # df = pd.read_csv(csv_path)
     upload_exemple_sub_question_5(df)
 
 
