@@ -132,3 +132,6 @@ dmypy.json
 
 #local repo to store data
 /data
+
+milestone-3-env
+models/*
