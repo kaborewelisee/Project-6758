@@ -54,26 +54,39 @@ def before_first_request():
     # TODO: setup basic logging configuration
     logging.basicConfig(filename=LOG_FILE, level=logging.INFO)
 
-    # model_file_path = None
+    load_default_model()
 
-    # try:
-    #     model_file_path = download_model(DEFAULT_MODEL_WORKSPACE, DEFAULT_MODEL_NAME, DEFAULT_MODEL_VERSION)
-    # except NotFoundError:
-    #     app.logger.info(e.message)
-    #     return
-    # except Exception as e:
-    #     app.logger.info(e.message)
-    #     return
+
+def load_default_model():
+    """
+    Load default model. Download it if not yet on the server
+    """
+    model_file_path = None
+    already_downloaded = False
+
+    try:
+        model_file_path, already_downloaded = download_model(DEFAULT_MODEL_WORKSPACE, DEFAULT_MODEL_NAME, DEFAULT_MODEL_VERSION)
+    except NotFoundError as e:
+        app.logger.info(str(e))
+        return
+    except Exception as e:
+        app.logger.info(str(e))
+        return
     
-    # app.logger.info(f"Model successfully downloaded: workspace={DEFAULT_MODEL_WORKSPACE}, model={DEFAULT_MODEL_NAME}, version={DEFAULT_MODEL_VERSION}")
+    download_message = "Model successfully downloaded"
+    if(already_downloaded):
+        download_message = "Model already present on server"
 
-    # try:
-    #     loaded_model = pickle.load(open(model_file_path, 'rb'))
-    # except:
-    #     app.logger.info(f"Could not load model from disk: workspace={DEFAULT_MODEL_WORKSPACE}, model={DEFAULT_MODEL_NAME}, version={DEFAULT_MODEL_VERSION}")
-    #     return
+    app.logger.info(f"{download_message}: workspace={DEFAULT_MODEL_WORKSPACE}, model={DEFAULT_MODEL_NAME}, version={DEFAULT_MODEL_VERSION}")
 
-    # app.logger.info(f"Model successfully loaded: workspace={DEFAULT_MODEL_WORKSPACE}, model={DEFAULT_MODEL_NAME}, version={DEFAULT_MODEL_VERSION}")
+    global loaded_model
+    try:
+        loaded_model = pickle.load(open(model_file_path, 'rb'))
+    except:
+        app.logger.info(f"Could not load model from disk: workspace={DEFAULT_MODEL_WORKSPACE}, model={DEFAULT_MODEL_NAME}, version={DEFAULT_MODEL_VERSION}")
+        return
+
+    app.logger.info(f"Model successfully loaded: workspace={DEFAULT_MODEL_WORKSPACE}, model={DEFAULT_MODEL_NAME}, version={DEFAULT_MODEL_VERSION}")
 
 
 @app.route("/logs", methods=["GET"])
@@ -130,18 +143,24 @@ def download_registry_model():
     model_version = json['version']
 
     model_file_path = None
+    already_downloaded = False
 
     try:
-        model_file_path = download_model(model_workspace, model_name, model_version)
-    except NotFoundError:
-        app.logger.info(e.message)
-        raise APIError(e.message, 404)
+        model_file_path, already_downloaded = download_model(model_workspace, model_name, model_version)
+    except NotFoundError as e:
+        app.logger.info(str(e))
+        raise APIError(str(e), 404)
     except Exception as e:
-        app.logger.info(e.message)
+        app.logger.info(str(e))
         raise APIError('Internal server error', 500)
-    
-    app.logger.info(f"Model successfully downloaded: workspace={model_workspace}, model={model_name}, version={model_version}")
 
+    download_message = "Model successfully downloaded"
+    if(already_downloaded):
+        download_message = "Model already present on server"
+    
+    app.logger.info(f"{download_message}: workspace={model_workspace}, model={model_name}, version={model_version}")
+
+    global loaded_model
     try:
         loaded_model = pickle.load(open(model_file_path, 'rb'))
     except:
@@ -154,18 +173,30 @@ def download_registry_model():
     return jsonify(response)  # response must be json serializable!
 
 
-def download_model(workspace: str, model: str, version: str) -> str:
+def download_model(workspace: str, model: str, version: str) -> tuple[str, bool]:
+    """
+    Download a specific version of the model in a comet workspace
+
+    Params
+    - `workspace`: comet workspace
+    - `model`: the registry model name
+    - `version`: the model version
+
+    Returns a tuple (str, bool)
+    - 1st arg: the file path where the model has been downloaded
+    - 2nd arg: indicates if the model was already downloaded
+    """
     file_path = join(MODEL_FOLDER_PATH, f"{workspace}~{model}~{version}.sav")
 
     if(exists(file_path)):
-        return file_path
+        return file_path, True
 
     comet_api_key = os.environ.get('COMET_API_KEY')
 
     comet_client = CometClient(comet_api_key)
     comet_client.download_registry_model(workspace, model, version, file_path)
 
-    return file_path
+    return file_path, False
 
 
 @app.route("/predict", methods=["POST"])
@@ -179,12 +210,88 @@ def predict():
     json = request.get_json()
     app.logger.info(json)
 
+    model_input = None
+
+    try:
+        raw_model_input = get_model_params(json)
+        model_input = pd.DataFrame.from_dict({ k: [v] for k, v in raw_model_input.items() })
+    except ValueError as e:
+        app.logger.info(str(e))
+        raise APIError(str(e), 400)
+    except Exception as e:
+        app.logger.info(str(e))
+        raise APIError(str(e), 500)
+
+    global loaded_model
+
     if (loaded_model == None):
         message = "No model available for prediction. Use /download_registry_model to load a model"
         app.logger.info(message)
         raise APIError(message, 404)
 
-    response = [0.5]
+    prediction = 0
+    prediction_proba = 0 
+    try:
+        prediction = loaded_model.predict(model_input)[0]
+        prediction_proba = loaded_model.predict_proba(model_input)[0][prediction]
+    except Exception as e:
+        app.logger.info(f"Error while calling predict on model: {str(e)}")
+        raise APIError("Internal server error", 500)
 
+    #Return:
+    # - The prediction class: 0 or 1
+    # - The prediction probability: if prediction == 0, it is the probability of the class 0. If prediction == 1, it is the probability of class 1
+    response = { 'prediction': int(prediction), 'prediction_prabability': prediction_proba }
     app.logger.info(response)
     return jsonify(response)  # response must be json serializable!
+
+
+MODEL_PARAMS_TYPE = {
+    'coordinates_x': float,
+    'coordinates_y': float,
+    'period': int,
+    'game_period_seconds': float,
+    'game_elapsed_time': float,
+    'shot_distance': float,
+    'shot_angle': float,
+    'hand_based_shot_angle': float,
+    'empty_net': int,
+    'last_coordinates_x': float,
+    'last_coordinates_y': float,
+    'time_since_last_event': float,
+    'distance_from_last_event': float,
+    'rebond': int,
+    'speed_from_last_event': float,
+    'shot_angle_change': float,
+    'ShotType_Backhand': int,
+    'ShotType_Deflected': int,
+    'ShotType_Slap Shot': int,
+    'ShotType_Snap Shot': int,
+    'ShotType_Tip-In': int,
+    'ShotType_Wrap-around': int,
+    'ShotType_Wrist Shot': int
+}
+
+def get_model_params(input_params: dict[str, object]) -> dict[str, object]:
+    """
+    Get model params from `input_params`
+
+    Params
+    - `input_params`: The input where to extract the model params
+
+    Returns
+    - `dict[str, object]`: The params required by the model
+
+    Throws
+    - `ValueError`: when a param required by the model is missing or is of incorrect type
+    """
+    result = {}
+    for model_param_key, model_param_type in MODEL_PARAMS_TYPE.items():
+        if (model_param_key not in input_params):
+            raise ValueError(f"Missing model param '{model_param_key}")
+        try:
+            param_value = model_param_type(input_params[model_param_key])
+            result[model_param_key] = param_value
+        except ValueError:
+            raise ValueError(f"Model param '{model_param_key} should be of type '{model_param_type}'")
+    return result
