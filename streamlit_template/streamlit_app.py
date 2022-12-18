@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-df = pd.read_csv("C:/Users/selim/Documents/GitHub/IFT-6758/data/df.csv")
-gameid_list = list(df['game_id'].unique())
+
 st.title("Hockey visualization App")
 with st.form(key ='Form1'):
    
@@ -19,7 +18,7 @@ with st.form(key ='Form1'):
 
 with st.container():
     # TODO: Add Game ID input
-    gameid = st.selectbox(label = "Choose a gameid", options = gameid_list)
+    
 
     form = st.form(key='GameID')
     form.text_input(label='Enter GameID')
