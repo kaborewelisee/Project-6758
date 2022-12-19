@@ -24,7 +24,7 @@ To install this package, first setup your Python environment (next section), and
 
     pip install -e ift6758
 
-assuming you are running this from the root directory of this repo. 
+assuming you are running t*his from the root directory of this repo.* 
 
 ## Docker
 
