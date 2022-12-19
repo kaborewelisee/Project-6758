@@ -18,6 +18,9 @@ LAST_EVENTS_FILE_NAME = 'games_last_event.json'
 logger = logging.getLogger(__name__)
 
 class GameClient:
+    """
+    Class that returns predictions for games. It is a wrapper around the prediction api and the nhl api to predict for live events
+    """
     def __init__(self, cache_folder_path: str = "./", ip = "127.0.0.1", port = 5000):
         self.cache_folder_path = cache_folder_path
         self.features = ['coordinates_x', 'coordinates_y', 'period', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot']
@@ -25,6 +28,15 @@ class GameClient:
 
 
     def ping(self, game_id: str) -> pd.DataFrame:
+        """
+        Get event features and predictions for a specific `game_id`
+
+        Args:
+        - `game_id`: The game id
+
+        Returns:
+        - A pandas dataframe with all the features and the predictions
+        """
         raw_game_data = self.download_game_data(game_id)
 
         games_last_event_file_path = join(self.cache_folder_path, f"{LAST_EVENTS_FILE_NAME}")
@@ -69,7 +81,9 @@ class GameClient:
 
 
     def get_new_data_features(self, game_data: dict, last_event_id: int, player_data_folder: str) -> tuple[pd.DataFrame, int]:
-        
+        """
+        Get the data that was not yet processed
+        """
         if len(game_data["liveData"]["plays"]["allPlays"]) == 0:
             return None, last_event_id
         
@@ -139,6 +153,9 @@ class GameClient:
 
     
     def download_game_data(self, game_id: str) -> dict:
+        """
+        Download game data from NHL api
+        """
         game_data = None
 
         try:
@@ -162,5 +179,5 @@ class GameClient:
 
 if __name__ == "__main__":
     game_client = GameClient("./data/predictions")
-    df = game_client.ping("2018021015")
+    df = game_client.ping("2018021023")
     df.to_csv('./data/predictions/2018021015-pred.csv', index=False)
