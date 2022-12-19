@@ -30,4 +30,25 @@ For conveniency, the `data` folder is already excluded from git so you can push 
 4. Add your comet environment variable
 ` export COMET_API_KEY=your_api_key_from_comet_portal`
 
-4. Run Flask using your IDE
+5. Run Flask using your IDE
+
+
+## How to use GameCient game_client 
+1. start the flask service
+
+2. Activate your environment and run the following command to install project modules <br />
+`pip install -e .` #run this from the project root folder
+`pip install -e ift6758` <br /> 
+
+3. Now you can use GameClient as follow
+```
+import GameClient
+
+#Make sure the folder "./data/predictions" exists or specify the folder your want.
+#You can specify also a specific ip and port
+game_client = GameClient("./data/predictions")
+
+#Call ping and pass in the game_id. Use try except to catch exceptions
+#Returns a dataframe with all features and the predictions
+df = game_client.ping("2018021015")
+```
