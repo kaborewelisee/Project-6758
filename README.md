@@ -37,8 +37,8 @@ For conveniency, the `data` folder is already excluded from git so you can push 
 1. start the flask service
 
 2. Activate your environment and run the following command to install project modules <br />
-`pip install -e .` #run this from the project root folder
-`pip install -e ift6758` <br /> 
+`pip install -e .` #run this from the project root folder <br />
+`pip install -e ift6758`
 
 3. Now you can use GameClient as follow
 ```
