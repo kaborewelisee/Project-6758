@@ -5,6 +5,15 @@ import requests
 import json
 
 
+prev_pred_goals = {
+    'home': 0,
+    'away': 0,
+}
+events = pd.DataFrame(
+    [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]],
+    columns=['feature0', 'feature1', 'feature2', 'feature3', 'feature4', 'prediction']
+)
+
 st.title("Hockey visualization App")
 with st.form(key='Form1'):
    
@@ -15,24 +24,21 @@ with st.form(key='Form1'):
         Model = st.sidebar.markdown("Model")
         Version = st.sidebar.markdown("Version")
         
-        getmodel = st.form_submit_button(label = 'Get Models')
+        getmodel = st.form_submit_button(label='Get Models')
         pass
 
 with st.container():
     # TODO: Add Game ID input
-    
 
-    form = st.form(key='GameID')
-    gameid = form.number_input('Enter GameID', step=None,value=0)
-    submit_button = form.form_submit_button(label='Ping game')
+    # form = st.form(key='GameID')
+    # gameid = form.number_input('Enter GameID', step=None, value=0)
+    # submit_button = form.form_submit_button(label='Ping game')
 
-    prev_pred_goals = {
-        'home': 0,
-        'away': 0,
-    }
-    features = [0, 0, 0, 0, 0, 0]
+    gameid = st.text_input('GameID')
 
-    if submit_button:
+    # if submit_button:
+    if st.button('Ping game'):
+
         # TODO get data from NHL from the game_id
         #  - Home team
         #  - Away team
@@ -72,6 +78,8 @@ with st.container():
 
         prev_pred_goals['home'] = pred_goals['home']
         prev_pred_goals['away'] = pred_goals['away']
+
+        st.table(data=events)
 
 with st.container():
     # TODO: Add Game info and predictions
