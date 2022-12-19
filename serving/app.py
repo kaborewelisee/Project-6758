@@ -23,6 +23,7 @@ from os.path import join
 from comet_client import CometClient
 from not_found_error import NotFoundError
 import pickle
+import collections.abc
 
 
 import ift6758
@@ -170,7 +171,7 @@ def download_registry_model():
     response = f"Model successfully loaded: workspace={model_workspace}, model={model_name}, version={model_version}"
     app.logger.info(response)
 
-    return jsonify(response)  # response must be json serializable!
+    return jsonify({"message": response})  # response must be json serializable!
 
 
 def download_model(workspace: str, model: str, version: str) -> tuple[str, bool]:
@@ -213,8 +214,7 @@ def predict():
     model_input = None
 
     try:
-        raw_model_input = get_model_params(json)
-        model_input = pd.DataFrame.from_dict({ k: [v] for k, v in raw_model_input.items() })
+        model_input = get_model_params(json)
     except ValueError as e:
         app.logger.info(str(e))
         raise APIError(str(e), 400)
@@ -229,19 +229,25 @@ def predict():
         app.logger.info(message)
         raise APIError(message, 404)
 
-    prediction = 0
-    prediction_proba = 0 
+    predictions = []
+    predictions_proba = []
     try:
-        prediction = loaded_model.predict(model_input)[0]
-        prediction_proba = loaded_model.predict_proba(model_input)[0][prediction]
+        #model_input is dataframe where each line is an input
+        raw_predictions = loaded_model.predict(model_input) #returns [is_goal_input_1, is_goal_input_2, is_goal_input_3]
+        raw_prediction_proba = loaded_model.predict_proba(model_input) #returns [[non_goal_proba_1, is_goal_proba_1], [non_goal_proba_2, is_goal_proba_2], [non_goal_proba_3, is_goal_proba_3]]
+        predictions = [None] * len(raw_prediction_proba)
+        predictions_proba = [None] * len(raw_prediction_proba)
+        for i in range(len(raw_prediction_proba)):
+            predictions[i] = int(raw_predictions[i]) #convert prediction to int array so it can be serialized in json
+            predictions_proba[i] = float(raw_prediction_proba[i][1]) #get the probability of goal for the input at index i
     except Exception as e:
         app.logger.info(f"Error while calling predict on model: {str(e)}")
         raise APIError("Internal server error", 500)
 
     #Return:
-    # - The prediction class: 0 or 1
-    # - The prediction probability: if prediction == 0, it is the probability of the class 0. If prediction == 1, it is the probability of class 1
-    response = { 'prediction': int(prediction), 'prediction_prabability': prediction_proba }
+    # - is goal: 0 or 1
+    # - The goal probability
+    response = { 'is_goal': predictions, 'goal_probability': predictions_proba }
     app.logger.info(response)
     return jsonify(response)  # response must be json serializable!
 
@@ -272,7 +278,7 @@ MODEL_PARAMS_TYPE = {
     'ShotType_Wrist Shot': int
 }
 
-def get_model_params(input_params: dict[str, object]) -> dict[str, object]:
+def get_model_params(input_params: dict[str, object]) -> pd.DataFrame:
     """
     Get model params from `input_params`
 
@@ -285,13 +291,20 @@ def get_model_params(input_params: dict[str, object]) -> dict[str, object]:
     Throws
     - `ValueError`: when a param required by the model is missing or is of incorrect type
     """
-    result = {}
+    result = None
     for model_param_key, model_param_type in MODEL_PARAMS_TYPE.items():
         if (model_param_key not in input_params):
             raise ValueError(f"Missing model param '{model_param_key}")
+
+        if(result is None):
+            try:
+                result = pd.DataFrame.from_dict(input_params)
+            except Exception as e:
+                raise ValueError("Invalid input format: Make sure each model feature is provided as key-value where the key is the feature and the value an array.")
+
         try:
-            param_value = model_param_type(input_params[model_param_key])
-            result[model_param_key] = param_value
+            result[model_param_key] = result[model_param_key].astype(model_param_type)
         except ValueError:
-            raise ValueError(f"Model param '{model_param_key} should be of type '{model_param_type}'")
+            raise ValueError(f"Model param '{model_param_key} should contain values of type '{model_param_type}'")
+
     return result

@@ -18,7 +18,7 @@ class ServingClient:
 
         # any other potential initialization
 
-    def predict(self, X: pd.DataFrame) -> pd.DataFrame:
+    def predict(self, X: pd.DataFrame) -> dict:
         """
         Formats the inputs into an appropriate payload for a POST request, and queries the
         prediction service. Retrieves the response from the server, and processes it back into a
@@ -28,12 +28,44 @@ class ServingClient:
             X (Dataframe): Input dataframe to submit to the prediction service.
         """
 
-        raise NotImplementedError("TODO: implement this function")
+        input = {}
+
+        for feature in self.features:
+            input[feature] = X[feature].values.tolist()
+
+        r = requests.post(
+            f"{self.base_url}/predict", 
+            json=input
+        )
+
+        response = { 'success': False, 'data': None, 'message': 'Unexpected error!'  }
+
+        if (r.status_code == 200):
+            response['success'] = True
+            response['data'] = pd.DataFrame.from_dict(r.json())
+        elif (r.status_code == 404 or r.status_code == 400):
+            response['success'] = False
+            response['message'] = r.json()['message']
+            
+        return response
+
 
     def logs(self) -> dict:
         """Get server logs"""
 
-        raise NotImplementedError("TODO: implement this function")
+        r = requests.get(f"{self.base_url}/logs")
+
+        response = { 'success': False, 'data': None, 'message': '' }
+
+        if r.status_code == 200:
+            response['success'] = True
+            response['data'] = r.json()
+        else:
+            response['success'] = False
+            response['message'] = 'Unexpected error!'
+
+        return response
+        
 
     def download_registry_model(self, workspace: str, model: str, version: str) -> dict:
         """
@@ -50,5 +82,61 @@ class ServingClient:
             model (str): The model in the Comet ML registry to download
             version (str): The model version to download
         """
+        r = requests.post(
+            f"{self.base_url}/download_registry_model", 
+            json={
+                'workspace' : workspace,
+                'model' : model,
+                'version' : version
+            }
+        )
 
-        raise NotImplementedError("TODO: implement this function")
+        response = { 'success': False, 'message': '' }
+
+        if r.status_code == 200:
+            response['success'] = True
+            response['message'] = r.json()
+        elif r.status_code == 404:
+            response['success'] = False
+            response['message'] = r.json()['message']
+        else:
+            response['success'] = False
+            response['message'] = 'Unexpected error!'
+
+        return response
+
+
+if __name__ == "__main__":
+    client = ServingClient("127.0.0.1", 5000, ['coordinates_x', 'coordinates_y', 'period', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot'])
+    download = client.download_registry_model('ift6758-22-milestone-2', 'question-6-random-forest-classifier-base', '1.0.0')
+    print(download)
+    input = {
+        "coordinates_x": [-69.0, 68.0],
+        "coordinates_y": [-4.0, -27.0],
+        "period": [2, 3],
+        "game_period_seconds": [9283.0, 9987.0],
+        "game_elapsed_time": [4955.0, 7637.0],
+        "shot_distance": [20.396078054371134, 34.20526275297414],
+        "shot_angle": [-11.309932474020211, 52.1250163489018],
+        "hand_based_shot_angle": [101.3099324740202, 37.874983651098205],
+        "empty_net": [0, 0],
+        "last_coordinates_x": [-9.0, 83.0],
+        "last_coordinates_y": [-3.0, -6.0],
+        "time_since_last_event": [38.0, 17.0],
+        "distance_from_last_event": [60.00833275470999, 25.80697580112788],
+        "rebond": [0, 1],
+        "speed_from_last_event": [1.579166651439737, 1.5180574000663458],
+        "shot_angle_change": [0.0, 7.125016348901795],
+        "ShotType_Backhand": [0, 0],
+        "ShotType_Deflected": [0, 0],
+        "ShotType_Slap Shot": [0, 0],
+        "ShotType_Snap Shot": [0, 0],
+        "ShotType_Tip-In": [0, 0],
+        "ShotType_Wrap-around": [0, 0],
+        "ShotType_Wrist Shot": [1, 1]
+    }
+    predict = client.predict(pd.DataFrame.from_dict(input))
+    print(predict)
+    logs = client.logs()
+    print(logs)
+
