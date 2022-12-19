@@ -18,10 +18,10 @@ LAST_EVENTS_FILE_NAME = 'games_last_event.json'
 logger = logging.getLogger(__name__)
 
 class GameClient:
-    def __init__(self, cache_folder_path: str = "./"):
+    def __init__(self, cache_folder_path: str = "./", ip = "127.0.0.1", port = 5000):
         self.cache_folder_path = cache_folder_path
         self.features = ['coordinates_x', 'coordinates_y', 'period', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot']
-        self.serving_client = ServingClient("127.0.0.1", 5000, self.features)
+        self.serving_client = ServingClient(ip, port, self.features)
 
 
     def ping(self, game_id: str) -> pd.DataFrame:
