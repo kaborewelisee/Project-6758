@@ -133,12 +133,68 @@ def get_game_events(game_data: dict, season_year: str) -> List[dict]:
             event = None
         else:
             event = {}
+            event["event_id"] = raw_event["about"]["eventId"]
             event["event_type"] = raw_event["result"]["eventTypeId"]
             event["coordinates_x"] = raw_event["coordinates"].get("x")
             event["coordinates_y"] = raw_event["coordinates"].get("y")
             event["dateTime"] = raw_event["about"]["dateTime"]
 
     return result
+
+
+def get_event_features(game_data: dict, raw_event: dict, home_rink_side_right: bool, player_folder_path: str) -> List[dict]:
+    """
+    Get event feature for a specific `event_data` in the `game_data`
+    """
+
+    event = {}
+
+    if raw_event["result"]["eventTypeId"] in ["SHOT", "GOAL"]:
+        event["game_start_time"] = game_data["gameData"]["datetime"].get("dateTime")
+        event["game_end_time"] = game_data["gameData"]["datetime"].get("endDateTime")
+        event["season"] = game_data["gameData"]["game"].get("season")
+        event["game_id"] = game_data["gameData"]["game"]["pk"]
+        event["team_id"] = raw_event["team"]["id"]
+        event["team_name"] = raw_event["team"]["name"]
+        event["team_tri_code"] = raw_event["team"]["triCode"]
+        event["team_link"] = raw_event["team"]["link"]
+        event["event_type"] = raw_event["result"]["eventTypeId"]
+        event["coordinates_x"] = raw_event["coordinates"].get("x")
+        event["coordinates_y"] = raw_event["coordinates"].get("y")
+
+        event_players = get_players_name(raw_event['players'])
+        event["shooter_name"] = event_players["shooter_name"]
+        event["goalie_name"] = event_players["goalie_name"]
+
+        event["shooter_right_handed"] = get_shooter_right_handed(raw_event['players'], player_folder_path)
+
+        event["shot_type"] = raw_event["result"].get("secondaryType")
+
+        event["goal_empty_net"] = raw_event["result"].get("emptyNet")
+
+        if "strength" in raw_event["result"]:
+            event["goal_strength_code"] = raw_event["result"]["strength"]["code"]
+        else:
+            event["goal_strength_code"] = None
+        
+        event["period"] = raw_event["about"]["period"]
+        event["team_home"] = raw_event["team"]["id"] == game_data["gameData"]["teams"]["home"]["id"]
+        if home_rink_side_right == None:
+            event["team_rink_side_right"] = None
+        else:
+            event["team_rink_side_right"] = (event["team_home"] and home_rink_side_right[event["period"]]) or (not event["team_home"] and not home_rink_side_right[event["period"]])
+
+        event["event_id"] = raw_event["about"]["eventId"]
+
+        event["dateTime"] = raw_event["about"]["dateTime"]
+    else:
+        event["event_id"] = raw_event["about"]["eventId"]
+        event["event_type"] = raw_event["result"]["eventTypeId"]
+        event["coordinates_x"] = raw_event["coordinates"].get("x")
+        event["coordinates_y"] = raw_event["coordinates"].get("y")
+        event["dateTime"] = raw_event["about"]["dateTime"]
+
+    return event
 
 
 def get_players_name(players: List[dict]) -> dict:
