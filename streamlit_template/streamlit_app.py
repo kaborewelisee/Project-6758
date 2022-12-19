@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import requests
+import json
+
 
 
 st.title("Hockey visualization App")
@@ -21,12 +24,20 @@ with st.container():
     
 
     form = st.form(key='GameID')
-    form.text_input(label='Enter GameID')
-    submit_button = form.form_submit_button(label='Ping')
+    gameid = form.number_input('Enter GameID',step=None,value=0)
+    submit_button = form.form_submit_button(label='Ping game')
+    if submit_button:
+        data = requests.get('https://statsapi.web.nhl.com/api/v1/game/{}/feed/live/'.format(gameid)).json()
+        td_home = data["liveData"]["boxscore"]["teams"]["home"]["teamStats"]["teamSkaterStats"]
+        home = data["gameData"]["teams"]["home"]["name"]
+        away = data["gameData"]["teams"]["away"]["name"]
+        st.write('Game ', gameid , home , ' vs ',away)
+        
     pass
 
 with st.container():
     # TODO: Add Game info and predictions
+    
     pass
 
 with st.container():
