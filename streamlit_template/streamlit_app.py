@@ -19,8 +19,6 @@ with st.form(key='Form1'):
         pass
 
 with st.container():
-    # TODO: Add Game ID input
-
     form = st.form(key='GameID')
     gameid = form.number_input('Enter GameID', step=None, value=0)
     submit_button = form.form_submit_button(label='Ping game')
@@ -29,24 +27,18 @@ with st.container():
     if submit_button:
     # if st.button('Ping game'):
 
-        # TODO get data from NHL from the game_id
-        #  - Home team
-        #  - Away team
-        #  - Period #
-        #  - Temps restant periode
-        #  - Actual score
-
         data = requests.get('https://statsapi.web.nhl.com/api/v1/game/{}/feed/live/'.format(gameid)).json()
-        print(data)
+        print(data["liveData"]["plays"]["allPlays"])
+        period_no = data["liveData"]["plays"]["allPlays"][-1]["about"]["period"]
+        periodTimeRemaining = data["liveData"]["plays"]["allPlays"][-1]["about"]["periodTimeRemaining"]
         # td_home = data["liveData"]["boxscore"]["teams"]["home"]["teamStats"]["teamSkaterStats"]
-        # home = data["gameData"]["teams"]["home"]["name"]
-        # away = data["gameData"]["teams"]["away"]["name"]
-        home = 'Canadiens'
-        away = 'Toronto'
-        st.write('Game ', gameid, home, ' vs ', away)
+        home = data["gameData"]["teams"]["home"]["name"]
+        away = data["gameData"]["teams"]["away"]["name"]
+        st.subheader(f'Game {gameid}: {away} @ {home}')
+        st.write(f'Period {period_no} - {periodTimeRemaining} left')
         actual_goals = {
-            'home': 2,
-            'away': 4,
+            'home': data["liveData"]["plays"]["allPlays"][-1]["about"]["goals"]["home"],
+            'away': data["liveData"]["plays"]["allPlays"][-1]["about"]["goals"]["away"],
         }
 
         # TODO get data from client API
@@ -60,6 +52,7 @@ with st.container():
             'home': sum([0.33, 0.45, 0.11, 0.89]),
             'away': sum([0.63, 0.95, 0.31, 0.79]),
         }
+        st.subheader('Features data and predictions')
         col1, col2 = st.columns(2)
         with col1:
             st.metric(
@@ -75,11 +68,3 @@ with st.container():
             )
 
         st.table(data=events)
-
-with st.container():
-    # TODO: Add Game info and predictions
-    pass
-
-with st.container():
-    # TODO: Add data used for predictions
-    pass

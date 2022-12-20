@@ -31,7 +31,7 @@ def get_comet_experiment() -> Experiment:
     Creates a comet experiment with the right project configuration. 
     It will get the api key from this environment variable: COMET_API_KEY
     """
-    comet_api_key = os.environ.get('COMET_API_KEY')
+    comet_api_key = os.getenv('COMET_API_KEY')
     experiment = Experiment(
         api_key=comet_api_key,
         project_name=COMET_PROJECT_NAME,
