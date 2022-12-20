@@ -14,23 +14,17 @@ from os.path import join
 from pathlib import Path
 import logging
 from flask import Flask, jsonify, request, abort
-import sklearn
 import pandas as pd
-import joblib
 from api_error import APIError
 from os.path import exists
 from os.path import join
 from comet_client import CometClient
 from not_found_error import NotFoundError
 import pickle
-import collections.abc
-
-
-import ift6758
 
 
 LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
-MODEL_FOLDER_PATH = './models'
+MODEL_FOLDER_PATH = os.environ.get("MODELS_FOLDER", "./")
 DEFAULT_MODEL_WORKSPACE = 'ift6758-22-milestone-2'
 DEFAULT_MODEL_NAME = 'question-6-random-forest-classifier-base'
 DEFAULT_MODEL_VERSION = '2.0.0'
