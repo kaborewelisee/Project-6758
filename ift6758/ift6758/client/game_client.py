@@ -178,6 +178,6 @@ class GameClient:
 
 
 if __name__ == "__main__":
-    game_client = GameClient("./data/predictions")
-    df = game_client.ping("2018021023")
-    df.to_csv('./data/predictions/2018021015-pred.csv', index=False)
+    game_client = GameClient("./data/predictions", "127.0.0.1", 9998)
+    df = game_client.ping("2018021030")
+    df.to_csv('./data/predictions/2018021030-pred.csv', index=False)

@@ -8,7 +8,7 @@
 
 # https://docs.docker.com/engine/reference/builder/#from
 # You shouldn't need to change this
-FROM python:3.7
+FROM python:3.9.7
 
 # https://docs.docker.com/engine/reference/builder/#workdir
 # Create and cd into /code as your working directory
@@ -43,15 +43,26 @@ WORKDIR /code
 #       CMD <SHELL COMMAND>
 
 
-
 # TODO: add code, optionally a default model if you want 
+ADD ./serving/api_error.py .
+ADD ./serving/app.py .
+ADD ./serving/comet_client.py .
+ADD ./serving/not_found_error.py .
+ADD ./ift6758/requirements.txt .
 
 
 # TODO: install libs
+RUN pip install --no-cache-dir -r requirements.txt && mkdir -p /models_cache
+
+
+#DEFAULT_API_KEY to be overriden wuile runnning the container
+ENV MODELS_FOLDER="/models_cache"
 
 
 # TODO: expose ports (or do this in docker-compose)
+EXPOSE 5000
 
 
 # TODO: specify default command - this is not required because you can always specify the command
 # either with the docker run command or in the docker-compose file
+CMD ["gunicorn"  , "-b", "0.0.0.0:5000", "app:app"]
