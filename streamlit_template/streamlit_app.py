@@ -16,9 +16,18 @@ serving = serving_client.ServingClient(ip="127.0.0.1", port=5000)
 
 # For Docker 
 #pinger = game_client.GameClient()
-#serving = serving_client.ServingClient(ip="serving",port=5000)
+#serving = serving_client.ServingClient(ip="serving",port=9998)
 
 
+
+global memoryGamet1
+global memoryGamet2
+global memoryGameID
+global homeOrAway
+memoryGamet1=0
+memoryGamet2=0
+memoryGameID=0
+homeOrAway=[]
 
 
 
@@ -38,7 +47,7 @@ with st.form(key='Form2'):
 with st.container():
     form1 = st.form(key='GameID')
     gameid1 = form1.number_input('Enter GameID', step=None, value=2021020312)
-    submit_button1 = form1.form_submit_button(label='Ping games')
+    ping_game = form1.form_submit_button(label='Ping games')
         
  
 pass
@@ -52,7 +61,10 @@ if getmodel1:
 
 
 
-if submit_button1:
+if ping_game:
+
+        
+
         
         data = requests.get('https://statsapi.web.nhl.com/api/v1/game/{}/feed/live/'.format(gameid1)).json()
         game=(pinger.ping(gameid1))
@@ -87,6 +99,29 @@ if submit_button1:
         gamet1= game[game['team_name']==team1]
         gamet2= game[game['team_name']==team2]
         
+        #Set up memory game and ID
+        if type(memoryGameID)==type(0):
+            #if no memory yet, set memoryGameID
+            memoryGameID=str(gameid1)
+        if type(memoryGamet1)==type(0):
+            #if no memory yet, set memoryGame
+            memoryGamet1=gamet1
+            memoryGamet2=gamet2
+        else:
+            if memoryGameID!=str(gameid1):
+                #if the memoryGameID does not correspond to the input gameID, it means that
+                #we are dealing with a new game. 
+                memoryGamet1=gamet1
+                memoryGamet2=gamet2
+                memoryGameID=str(gameid1)
+            else:
+                #This is if the new events belong to the same game
+                memoryGamet1.append(gamet1,ignore_index=True)
+                memoryGamet2.append(gamet2,ignore_index=True)
+
+
+        
+        
         st.subheader(f'Game {gameid1}: {team1} @ {team2}')
         st.write(f'Period {period1} - {timeLeftt1} left')
         actual_goals = {
@@ -96,17 +131,31 @@ if submit_button1:
         
         #  Corresponding XG for each teams
         XGt1 = gamet1[['goal_probability']]
+       
+       
+        XGt1 = XGt1.drop_duplicates(subset='goal_probability', keep='first')
+
         XGt2 = gamet2[['goal_probability']]
+        XGt2 = XGt2.drop_duplicates(subset='goal_probability', keep='first')
         # Sum
-        sumt1 = int(XGt1.sum())
-        sumt2 = int(XGt2.sum())
+        sumt1 = float(XGt1.sum())
+        sumt2 = float(XGt2.sum())
         
         # Dataframe with only goals for each team
         Gt1 = gamet1[gamet1['event_type']=='GOAL']
+        
+        Gt1 = Gt1.drop_duplicates(subset='event_id', keep='first')
+
         Gt2 = gamet2[gamet2['event_type']=='GOAL']
+        
+        Gt2 = Gt2.drop_duplicates(subset='event_id', keep='first')
         # Sum of goals for each team
         goalst1 = int(len(Gt1.index))
         goalst2 = int(len(Gt2.index))
+
+        delta1 = sumt1 - goalst1
+        delta2 = sumt2 - goalst2
+        
 
       # st.subheader('Features data and predictions')
       # col1, col2 = st.columns(2)
@@ -128,27 +177,30 @@ if submit_button1:
         col1, col2 = st.columns(2)
         col1.metric(
                label=f"{team1} - Expected Goals (actual)",
-               value=f"{sumt1} ({goalst1})",
-               delta=sumt1-goalst1
+               value=f"{'%.2f' % sumt1} ({goalst1})",
+               delta='%.2f' % delta1
            )
         with col2:
              st.metric(
                  label=f"{team2} - Expected Goals (actual)",
-                 value=f"{sumt2} ({goalst2})",
-                 delta=sumt2-goalst2
+                 value=f"{'%.2f' % sumt2} ({goalst2})",
+                 delta='%.2f' % delta2
              )
-        events = pd.DataFrame(
-            [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]],
-            columns=['feature0', 'feature1', 'feature2', 'feature3', 'feature4', 'prediction']
-        )
-        pred_goals = {
-            'home': sum([0.33, 0.45, 0.11, 0.89]),
-            'away': sum([0.63, 0.95, 0.31, 0.79]),
-        }
+        #events = pd.DataFrame(
+        #    [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]],
+        #   columns=['feature0', 'feature1', 'feature2', 'feature3', 'feature4', 'prediction']
+        #)
+        #pred_goals = {
+        #    'home': sum([0.33, 0.45, 0.11, 0.89]),
+        #    'away': sum([0.63, 0.95, 0.31, 0.79]),
+        #}
         
 
-        st.table(data=events)
+        #st.table(data=events)
         
+        game = game.drop_duplicates(subset='event_id', keep='first')
+        df1 =  game[['coordinates_x', 'coordinates_y', 'period', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot','goal_probability']]
+        st.dataframe(df1)
 
 
 
