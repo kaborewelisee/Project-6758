@@ -107,14 +107,14 @@ class ServingClient:
 
 
 if __name__ == "__main__":
-    client = ServingClient("127.0.0.1", 5000, ['coordinates_x', 'coordinates_y', 'period', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot'])
+    client = ServingClient("127.0.0.1", 5000, ['coordinates_x', 'coordinates_y', 'period', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot'])
     download = client.download_registry_model('ift6758-22-milestone-2', 'question-6-random-forest-classifier-base', '1.0.0')
     print(download)
     input = {
         "coordinates_x": [-69.0, 68.0],
         "coordinates_y": [-4.0, -27.0],
         "period": [2, 3],
-        "game_period_seconds": [9283.0, 9987.0],
+        #"game_period_seconds": [9283.0, 9987.0],
         "game_elapsed_time": [4955.0, 7637.0],
         "shot_distance": [20.396078054371134, 34.20526275297414],
         "shot_angle": [-11.309932474020211, 52.1250163489018],

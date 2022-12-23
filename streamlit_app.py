@@ -7,15 +7,14 @@ import datetime
 import sys
 from ift6758.client import game_client, serving_client
 
-
 ########################################
 # Partie client
 # For local testing
-pinger = game_client.GameClient()
+pinger = game_client.GameClient("./predictions", "127.0.0.1", 5000)
 serving = serving_client.ServingClient(ip="127.0.0.1", port=5000)
 
 # For Docker 
-#pinger = game_client.GameClient()
+#pinger = game_client.GameClient("./data/predictions", "127.0.0.1", 9998)
 #serving = serving_client.ServingClient(ip="serving",port=9998)
 
 
@@ -39,7 +38,7 @@ with st.form(key='Form2'):
         # TODO: Add input for the sidebar
         workspace1 = st.selectbox('Workspace', ('ift6758-22-milestone-2','test'))
         Model1 = st.selectbox('Model', ('question-6-random-forest-classifier-base','xgboost-task5-model'))
-        Version1 = st.selectbox('Version', ('1.0.0','test'))
+        Version1 = st.selectbox('Version', ('3.0.0',' '))
         
         getmodel1 = st.form_submit_button(label='Get Models')
         pass
@@ -54,8 +53,14 @@ pass
 
 if getmodel1:
             #serving.download_registry_model('ift6758-22-milestone-2', 'question-6-random-forest-classifier-base', '1.0.0')
-            serving.download_registry_model(workspace1,Model1,Version1)
-            st.write("Model ",Version1, " Version ",Model1," Workspace ",workspace1," has been uploaded")
+            
+            dic= serving.download_registry_model(workspace1,Model1,Version1)
+            
+            st.write(dic['message'])
+            #st.write("Model ",Version1, " Version ",Model1," Workspace ",workspace1," has been uploaded")
+            
+
+            
 
 
 
@@ -65,9 +70,9 @@ if ping_game:
 
         
 
-        
+        tag = workspace1+Model1+Version1
         data = requests.get('https://statsapi.web.nhl.com/api/v1/game/{}/feed/live/'.format(gameid1)).json()
-        game=(pinger.ping(gameid1))
+        game=(pinger.ping(gameid1,tag))
         period1 = game["period"].iloc[-1]
         s = game.iloc[-1]["game_elapsed_time"]
         
@@ -133,10 +138,10 @@ if ping_game:
         XGt1 = gamet1[['goal_probability']]
        
        
-        XGt1 = XGt1.drop_duplicates(subset='goal_probability', keep='first')
+        #XGt1 = XGt1.drop_duplicates(subset='goal_probability', keep='first')
 
         XGt2 = gamet2[['goal_probability']]
-        XGt2 = XGt2.drop_duplicates(subset='goal_probability', keep='first')
+        #XGt2 = XGt2.drop_duplicates(subset='goal_probability', keep='first')
         # Sum
         sumt1 = float(XGt1.sum())
         sumt2 = float(XGt2.sum())
@@ -144,11 +149,11 @@ if ping_game:
         # Dataframe with only goals for each team
         Gt1 = gamet1[gamet1['event_type']=='GOAL']
         
-        Gt1 = Gt1.drop_duplicates(subset='event_id', keep='first')
+        #Gt1 = Gt1.drop_duplicates(subset='event_id', keep='first')
 
         Gt2 = gamet2[gamet2['event_type']=='GOAL']
         
-        Gt2 = Gt2.drop_duplicates(subset='event_id', keep='first')
+        #Gt2 = Gt2.drop_duplicates(subset='event_id', keep='first')
         # Sum of goals for each team
         goalst1 = int(len(Gt1.index))
         goalst2 = int(len(Gt2.index))
@@ -198,8 +203,8 @@ if ping_game:
 
         #st.table(data=events)
         
-        game = game.drop_duplicates(subset='event_id', keep='first')
-        df1 =  game[['coordinates_x', 'coordinates_y', 'period', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot','goal_probability']]
+        #game = game.drop_duplicates(subset='event_id', keep='first')
+        df1 =  game[['coordinates_x', 'coordinates_y', 'period', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot','goal_probability']]
         st.dataframe(df1)
 
 

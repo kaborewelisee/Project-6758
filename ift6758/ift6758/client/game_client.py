@@ -23,11 +23,11 @@ class GameClient:
     """
     def __init__(self, cache_folder_path: str = "./", ip = "127.0.0.1", port = 5000):
         self.cache_folder_path = cache_folder_path
-        self.features = ['coordinates_x', 'coordinates_y', 'period', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot']
+        self.features = ['coordinates_x', 'coordinates_y', 'period', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change', 'ShotType_Backhand', 'ShotType_Deflected', 'ShotType_Slap Shot', 'ShotType_Snap Shot', 'ShotType_Tip-In', 'ShotType_Wrap-around', 'ShotType_Wrist Shot']
         self.serving_client = ServingClient(ip, port, self.features)
 
 
-    def ping(self, game_id: str) -> pd.DataFrame:
+    def ping(self, game_id: str, tag: str) -> pd.DataFrame:
         """
         Get event features and predictions for a specific `game_id`
 
@@ -47,13 +47,14 @@ class GameClient:
                 games_last_event = json.load(f)
         
         last_event_id = None
-        if(game_id in games_last_event):
-            last_event_id = games_last_event[game_id]
+        gametag=str(game_id) + tag
+        if(gametag in games_last_event):
+            last_event_id = games_last_event[gametag]
         
         new_data_features, last_treated_event_id = self.get_new_data_features(raw_game_data, last_event_id, join(self.cache_folder_path, f"{game_id}-players"))
 
         game_predictions: pd.DataFrame = None
-        game_predictions_file_path = join(self.cache_folder_path, f"{game_id}.csv")
+        game_predictions_file_path = join(self.cache_folder_path, f"{gametag}.csv")
         if (exists(game_predictions_file_path)):
             game_predictions = pd.read_csv(game_predictions_file_path)
 
@@ -72,7 +73,7 @@ class GameClient:
         if(game_predictions is not None):
             game_predictions.to_csv(game_predictions_file_path, index=False)
         
-        games_last_event[game_id] = last_treated_event_id
+        games_last_event[gametag] = last_treated_event_id
 
         with open(games_last_event_file_path, 'w') as f:
             f.write(json.dumps(games_last_event))
@@ -178,6 +179,7 @@ class GameClient:
 
 
 if __name__ == "__main__":
-    game_client = GameClient("./data/predictions", "127.0.0.1", 9998)
+    game_client = GameClient("./data/predictions", "127.0.0.1", 5000)
     df = game_client.ping("2018021030")
+    
     df.to_csv('./data/predictions/2018021030-pred.csv', index=False)

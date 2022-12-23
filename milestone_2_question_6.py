@@ -19,7 +19,7 @@ import pickle
 
 
 def getRequiredFeatures(df: pd.DataFrame) -> pd.DataFrame:
-    return df[['coordinates_x', 'coordinates_y', 'period', 'shot_type', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'is_goal', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change']]
+    return df[['coordinates_x', 'coordinates_y', 'period', 'shot_type', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'is_goal', 'empty_net', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change']]
 
 
 def removeInvalidData(df: pd.DataFrame) -> pd.DataFrame:
@@ -43,7 +43,7 @@ def removeInvalidData(df: pd.DataFrame) -> pd.DataFrame:
 def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     df['rebond'] = df['rebond'].astype(int)
     df['shot_angle_change'].fillna(0, inplace=True)
-    df['game_period_seconds'].fillna(df['game_period_seconds'].mean(), inplace=True)
+    #df['game_period_seconds'].fillna(df['game_period_seconds'].mean(), inplace=True)
 
     max_speed_from_last_event = df.loc[df['speed_from_last_event'] != np.inf, 'speed_from_last_event'].max()
     df['speed_from_last_event'].replace(np.inf, max_speed_from_last_event, inplace=True)

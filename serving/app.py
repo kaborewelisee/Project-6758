@@ -250,7 +250,7 @@ MODEL_PARAMS_TYPE = {
     'coordinates_x': float,
     'coordinates_y': float,
     'period': int,
-    'game_period_seconds': float,
+    #'game_period_seconds': float,
     'game_elapsed_time': float,
     'shot_distance': float,
     'shot_angle': float,

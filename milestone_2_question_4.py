@@ -12,7 +12,7 @@ def add_features_sub_question_1(raw_df: pd.DataFrame) -> pd.DataFrame:
     
     start_time = pd.to_datetime(raw_df['game_start_time'], infer_datetime_format=True)
     end_time = pd.to_datetime(raw_df['game_end_time'], infer_datetime_format=True)
-    raw_df['game_period_seconds'] = (end_time - start_time).dt.seconds
+    #raw_df['game_period_seconds'] = (end_time - start_time).dt.seconds
     raw_df['shot_distance'] = raw_df.apply(lambda x: generic_util.get_shot_distance(x.coordinates_x, x.coordinates_y, x.team_rink_side_right), axis=1)
     
     raw_df['rigth_side_ref_x'] = np.where(raw_df['team_rink_side_right'], -raw_df['coordinates_x'], raw_df['coordinates_x'])
@@ -98,7 +98,7 @@ def upload_exemple_sub_question_5(df: pd.DataFrame):
     game_id = 2017021065
 
     subset_df = df[df["game_id"] == game_id]
-    subset_df = subset_df[['event_id', 'game_id', 'period', 'coordinates_x', 'coordinates_y', 'shot_type', 'game_period_seconds', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'is_goal', 'empty_net', 'last_event_type', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change']]
+    subset_df = subset_df[['event_id', 'game_id', 'period', 'coordinates_x', 'coordinates_y', 'shot_type', 'game_elapsed_time', 'shot_distance', 'shot_angle', 'hand_based_shot_angle', 'is_goal', 'empty_net', 'last_event_type', 'last_coordinates_x', 'last_coordinates_y', 'time_since_last_event', 'distance_from_last_event', 'rebond', 'speed_from_last_event', 'shot_angle_change']]
 
     experiment = generic_util.get_comet_experiment()
 

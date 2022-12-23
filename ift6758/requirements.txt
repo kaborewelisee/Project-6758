@@ -14,4 +14,4 @@ scikit-learn
 comet_ml
 jupyterlab
 ipywidgets
-streamlit
+streamlit==1.15.0
