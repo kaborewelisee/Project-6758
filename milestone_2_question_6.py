@@ -144,6 +144,8 @@ def train_decision_tree(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd
     plt.savefig('./data/question-6-decision-tree-classifer/calibration-prediction.jpeg')
     experiment.log_image('./data/question-6-decision-tree-classifer/calibration-prediction.jpeg')
 
+    time.sleep(3 * 60)
+
     print()
 
 
@@ -236,7 +238,7 @@ def train_random_forest(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd
     plt.savefig('./data/question-6-random-forest-classifier/calibration-prediction.jpeg')
     experiment.log_image('./data/question-6-random-forest-classifier/calibration-prediction.jpeg')
 
-    time.sleep(3 * 60)
+    time.sleep(6 * 60)
 
     print()
 
@@ -542,16 +544,17 @@ if __name__ == "__main__":
     df = getRequiredFeatures(df)
     df = transform_data(df)
 
+
     X_train, X_test, y_train, y_test = generic_util.split_train_test(df)
 
 
     train_decision_tree(X_train, X_test, y_train, y_test)
 
-    train_random_forest(X_train, X_test, y_train, y_test)
+    # train_random_forest(X_train, X_test, y_train, y_test)
 
-    train_mlp_classifier(X_train, X_test, y_train, y_test)
+    #train_mlp_classifier(X_train, X_test, y_train, y_test)
 
-    train_mlp_classifier_scaled(X_train, X_test, y_train, y_test)
+    #train_mlp_classifier_scaled(X_train, X_test, y_train, y_test)
 
 
 
