@@ -36,8 +36,8 @@ with st.form(key='Form2'):
    
     with st.sidebar:
         # TODO: Add input for the sidebar
-        workspace1 = st.selectbox('Workspace', ('ift6758-22-milestone-2','test'))
-        Model1 = st.selectbox('Model', ('question-6-random-forest-classifier-base','xgboost-task5-model'))
+        workspace1 = st.selectbox('Workspace', ('ift6758-22-milestone-2',' '))
+        Model1 = st.selectbox('Model', ('question-6-random-forest-classifier-base','xgboost-task5-model','question-6-decision-tree-classifer-base'))
         Version1 = st.selectbox('Version', ('3.0.0',' '))
         
         getmodel1 = st.form_submit_button(label='Get Models')
