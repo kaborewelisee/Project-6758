@@ -27,7 +27,7 @@ LOG_FILE = os.environ.get("FLASK_LOG", "flask.log")
 MODEL_FOLDER_PATH = os.environ.get("MODELS_FOLDER", "./")
 DEFAULT_MODEL_WORKSPACE = 'ift6758-22-milestone-2'
 DEFAULT_MODEL_NAME = 'question-6-random-forest-classifier-base'
-DEFAULT_MODEL_VERSION = '2.0.0'
+DEFAULT_MODEL_VERSION = '3.0.0'
 
 loaded_model = None
 
@@ -77,7 +77,9 @@ def load_default_model():
     global loaded_model
     try:
         loaded_model = pickle.load(open(model_file_path, 'rb'))
-    except:
+    except Exception as e:
+        app.logger.info(str(e))
+    
         app.logger.info(f"Could not load model from disk: workspace={DEFAULT_MODEL_WORKSPACE}, model={DEFAULT_MODEL_NAME}, version={DEFAULT_MODEL_VERSION}")
         return
 

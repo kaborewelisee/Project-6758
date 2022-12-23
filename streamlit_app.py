@@ -10,12 +10,12 @@ from ift6758.client import game_client, serving_client
 ########################################
 # Partie client
 # For local testing
-pinger = game_client.GameClient("./predictions", "127.0.0.1", 5000)
-serving = serving_client.ServingClient(ip="127.0.0.1", port=5000)
+#pinger = game_client.GameClient("./predictions", "127.0.0.1", 5000)
+#serving = serving_client.ServingClient(ip="127.0.0.1", port=5000)
 
 # For Docker 
-#pinger = game_client.GameClient("./data/predictions", "127.0.0.1", 9998)
-#serving = serving_client.ServingClient(ip="serving",port=9998)
+pinger = game_client.GameClient("./predictions", "flask", 5000)
+serving = serving_client.ServingClient(ip="flask",port=5000)
 
 
 
