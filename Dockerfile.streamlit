@@ -8,7 +8,7 @@
 
 # https://docs.docker.com/engine/reference/builder/#from
 # You shouldn't need to change this
-FROM python:3.7
+FROM python:3.11
 
 # https://docs.docker.com/engine/reference/builder/#workdir
 # Create and cd into /code as your working directory
@@ -19,6 +19,8 @@ COPY ./milestone_2_question_4.py .
 COPY ./milestone_2_question_6.py .
 COPY ./generic_util.py .
 COPY ./setup.py .
+COPY ./nhl_tidy_data.py .
+COPY ./nhl_dataset.py .
 ADD ./streamlit_app.py .
 ADD ./ift6758/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt 
@@ -26,9 +28,9 @@ RUN pip install -e .
 RUN pip install -e ift6758
 
 
-EXPOSE 2305
+EXPOSE 8501
 
-CMD  ["streamlit", "run", "streamlit_app.py", "--server.port=2305", "--server.address=127.0.0.1"]
+CMD  ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
 
 # The main docker commands you will find useful:
 # 
