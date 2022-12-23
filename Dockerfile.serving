@@ -52,7 +52,7 @@ ADD ./ift6758/requirements.txt .
 
 
 # TODO: install libs
-RUN pip install --no-cache-dir -r requirements.txt && mkdir -p /models_cache
+RUN pip install --default-timeout=100 --no-cache-dir -r requirements.txt && mkdir -p /models_cache
 
 
 #DEFAULT_API_KEY to be overriden wuile runnning the container
